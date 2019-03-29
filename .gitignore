@@ -1,0 +1,12 @@
+__pycache__
+dist
+*.pyc
+*.swp
+*.coverage
+*.egg-info
+.DS_Store
+.settings
+.vscode
+.pytest_cache
+.venv
+.env
