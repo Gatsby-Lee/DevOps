@@ -1,0 +1,92 @@
+{
+    // cusor blink consumes battery
+    "editor.cursorBlinking": "solid",
+    "editor.fontSize": 15,
+    // Formatting
+    "editor.autoIndent": true,
+    "editor.formatOnSave": true,
+    "editor.multiCursorModifier": "alt",
+    "editor.renderWhitespace": "all",
+    "editor.rulers": [
+        80,
+        140
+    ],
+    "editor.tabSize": 4,
+    "[html]": {
+        "editor.tabSize": 2
+    },
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    // yapf: https://github.com/google/yapf
+    // "python.formatting.provider": "yapf",
+    "python.formatting.provider": "autopep8",
+    "python.formatting.yapfArgs": [
+        "--style",
+        "{based_on_style: pep8, column_limit: 120}"
+    ],
+    "python.linting.pylintArgs": [
+        // C0103:Invalid constant name
+        // C0111:Missing method docstring
+        // R0902:Too many instance attributes
+        // R0903:Too few public methods
+        // R0903:Too many public methods
+        // R0915:Too many statements
+        // W0703: Catching too general exception
+        // W0105: String statement has no effect
+        // W0613: Unused argument
+        "--disable=C0103,C0111,R0902,R0903,R0904,R0915,W0703,W0105,W0613",
+        "--max-line-length=120",
+        "--disable=R,C"
+    ],
+    // https://fedoramagazine.org/vscode-python-howto/
+    "python.unitTest.pyTestEnabled": true,
+    "python.unitTest.pyTestPath": "${workspaceRoot}/.venv/bin/pytest",
+    "window.zoomLevel": 0,
+    "workbench.colorTheme": "Monokai",
+    "workbench.colorCustomizations": {
+        "editor.selectionHighlightBackground": "#2E0C0C"
+    },
+    "terminal.integrated.scrollback": 5000,
+    "python.pythonPath": "python",
+    "search.exclude": {
+        "**/.git": true,
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/tmp": true,
+        "**/dist": true,
+        ".idea/*": true,
+        "**/pyvenv": true
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true,
+        "**/__pycache__": true,
+        "**/pyvenv": true,
+        ".idea": true,
+        "bower_components": true,
+        "dist": true,
+        "node_modules": true,
+        "public": true,
+        "tmp": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/pyvenv": true,
+        ".idea": true,
+        "bower_components": true,
+        "dist": true,
+        "node_modules": true,
+        "public": true,
+        "tmp": true
+    }
+}
+
