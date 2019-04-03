@@ -46,7 +46,7 @@ Java의 Interface 개념을 이용한다면? Flyable()
 fly()를 더 이상 Duck의 Child Class가 구현(Implementing) 하게 하지 않고,
 별도의 Class로 통해 행위를 구현한다. 이때 중요한 것은 Interface를 기준으로 구현한다는 점이다.
 
-.. code-block: python
+.. code-block:: python
 
   class FlyBehavior:
     def fly():
@@ -75,7 +75,7 @@ Client가 특정 구현 객체가 아닌 Interface를 이용하여 사용 할 �
 예를들어, Client는 자신이 사용 하는 FlyBehavior가 어떤 것이지 상관없이 fly()를 통해 원하는 fly()를 할 수 있다는 것을 의미한다.
 좀 더 Java적으로 설명하자면,
 
-.. code-block: java
+.. code-block:: java
 
   FlyBehavior f = new FlyWithWings()
   f.fly()
@@ -94,7 +94,7 @@ Client가 특정 구현 객체가 아닌 Interface를 이용하여 사용 할 �
 
 예를들면, 오리가 fly()를 구현해 놓고 상속하게끔 하는게 아니라, 분리되는 구현된 fly()를 사용하는 것.
 
-.. code-block: python
+.. code-block:: python
 
   class Duck(object):
 
