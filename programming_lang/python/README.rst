@@ -9,6 +9,13 @@ Path
   python -c "import sys; print('\n'.join(sys.path))"
 
 
+Install mysqlclient-python
+----
+
+.. code-block:: bash
+
+  LDFLAGS=-L/usr/local/opt/openssl/lib pip install mysqlclient
+
 
 External References
 -------------------
