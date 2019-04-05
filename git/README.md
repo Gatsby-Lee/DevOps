@@ -12,6 +12,11 @@ Stash
 -----
 * `git stash -k`: stash files on change stage
 
+set-upstream-to
+---------------
+
+* `git branch --set-upstream-to=<remove/branch> <localbranch>`
+
 Commiter Info
 -----
 * `--global` option can be used to set config on global level
