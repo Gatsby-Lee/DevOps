@@ -4,6 +4,11 @@ Hive Error
 MapredLocalTask
 ---------------
 
+.. code-block:: sql
+
+  set hive.auto.convert.join=false
+
+
 Error: Error while processing statement: FAILED: Execution Error, return code 1 from org.apache.hadoop.hive.ql.exec.mr.MapredLocalTask (state=08S01,code=1)
 
 
