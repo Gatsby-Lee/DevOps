@@ -53,7 +53,7 @@ Add YUM repository
 4. Start Docker service
 -----------------------
 
-.. code-blcok:: bash
+.. code-block:: bash
 
     sudo systemctl start docker
 
@@ -64,7 +64,7 @@ Add YUM repository
 
 refs: https://docs.docker.com/install/linux/linux-postinstall/
 
-.. code-blcok:: bash
+.. code-block:: bash
 
     sudo groupadd docker
     sudo usermod -aG docker $USER
@@ -73,7 +73,7 @@ refs: https://docs.docker.com/install/linux/linux-postinstall/
 6. Docker Login
 ---------------------
 
-.. code-blcok:: bash
+.. code-block:: bash
 
     docker login
 
