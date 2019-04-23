@@ -48,6 +48,7 @@ Play with alpine container
     CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                      PORTS               NAMES
     74dda54a3542        alpine              "/bin/sh"           46 seconds ago      Exited (0) 20 seconds ago                       alpine_bash
 
+    # `attach` command connects your terminal’s standard input, output and error to a running container
     # Unable to attach to "not running container
     $ docker attach alpine_bash
     You cannot attach to a stopped container, start it first
