@@ -22,22 +22,22 @@ Kill Container
 
 
 Remove Container
-----------------
+-----------------
 
 .. code-block:: bash
 
-     # Remove one or more containers.
+    # Remove one or more containers.
     docker rm <container_id|container_name>
     # Remove all containers
     docker rm $(docker ps -a -q)
 
 
 Remove Image
-------------
+-------------
 
 .. code-block:: bash
 
-     # Remove one or more images.
+    # Remove one or more images.
     docker rmi <image_id|repository:tag>
     # Remove all containers
     docker rmi $(docker images -q)
