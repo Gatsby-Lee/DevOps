@@ -1,5 +1,15 @@
-Google Storage
-==============
+Google Cloud Storage
+====================
+
+Service Account ( Role )
+------------------------
+
+Storage Object Creator
+^^^^^^^^^^^^^^^^^^^^^^
+
+Unable to overwrite existing object. "Storage Object Admin" can overwrite.
+
+
 
 External References
 -------------------
