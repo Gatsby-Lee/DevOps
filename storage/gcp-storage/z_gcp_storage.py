@@ -6,10 +6,6 @@ import argparse
 
 from google.cloud import storage
 
-from pylib.zcomp import get_gzipped_content
-
-DEFAULT_CONTENT_TYPE = 'text/plain'
-
 
 class GCPStorage(object):
     """
@@ -21,14 +17,12 @@ class GCPStorage(object):
         self.bucket = self._client.bucket(bucket_name)
 
     def store(self, content, object_key: str,
-              content_type: str = DEFAULT_CONTENT_TYPE,
-              gzip_compressed: str = False):
+              content_type: str,
+              content_encoding: str):
         blob = self.bucket.blob(object_key)
-        if gzip_compressed:
-            blob.content_encoding = 'gzip'
-        blob.upload_from_string(
-            content,
-            content_type='text/plain')
+        blob.content_encoding = content_encoding
+        blob.upload_from_string(content,
+                                content_type=content_type)
 
 
 def _parse_args():
@@ -36,16 +30,13 @@ def _parse_args():
     parser.add_argument('--bucket', required=True)
     parser.add_argument('--content', required=True)
     parser.add_argument('--object-key', required=True)
-    parser.add_argument('--gzip')
+    parser.add_argument('--content-type', required=True)
+    parser.add_argument('--content-encoding', required=True)
     return parser.parse_args()
 
 
 def cli_main():
-
     args = _parse_args()
     s = GCPStorage(args.bucket)
-    gzip_compressed = args.gzip
     content = args.content
-    if gzip_compressed:
-        content = get_gzipped_content(content.encode())
-    s.store(content, args.object_key, gzip_compressed=True)
+    s.store(content, args.object_key, args.content_type, args.content_encoding)
