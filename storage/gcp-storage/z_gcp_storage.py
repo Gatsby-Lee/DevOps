@@ -16,6 +16,9 @@ class GCPStorage(object):
         self._client = storage.Client()
         self.bucket = self._client.bucket(bucket_name)
 
+    def is_exist(self, object_key: str):
+        return self.bucket.blob(object_key).exists()
+
     def store_str(self, content, object_key: str,
                   content_type: str,
                   content_encoding: str):
