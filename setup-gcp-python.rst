@@ -14,7 +14,10 @@ Download / Install SDK ( gcloud )
 Install / Remove components
 ---------------------------
 
+ref: https://cloud.google.com/sdk/docs/components
+
 .. code-block:: bash
+
   $ gcloud components list
   $ gcloud components install app-engine-python
   $ gcloud components remove app-engine-python
