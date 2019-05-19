@@ -3,7 +3,7 @@ Setup GCP Python OSX
 
 ref: https://cloud.google.com/sdk/docs/quickstart-macos
 
-Download / Install SDK ( gcloud )
+Download / Install SDK (gcloud)
 ---------------------------------
 
 * Download https://cloud.google.com/sdk/docs/ ( It will be downloaded to ~\Downloads )
