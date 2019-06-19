@@ -22,6 +22,11 @@ def finite_loop_worker(loop=3):
         LOGGER.info('%s: %s', n, t)
         time.sleep(2)
 
+def immediate_exception_raised_worker(loop=3):
+    """thread worker function"""
+
+    raise Exception('unknown')
+
 def main_run_infinite_loop_non_daemon_thread(num_threads=2):
     """
     main-thread,Program(Process) WAITS until all spawed(child)-thread completes.
@@ -141,6 +146,18 @@ def main_run_nondaemon_with_start_first_join_later(num_threads=2):
     LOGGER.info('==== Finished launching non-Daemon Threads without JOIN ====')
 
 
+def main_run_immediate_exception_raised_non_daemon_thread(num_threads=2):
+    """
+    main-thread,Program(Process) EXISTS since all non-daemon threads completes.
+    """
+    LOGGER.info('==== Starting launch non-Daemon Threads ====')
+    for i in range(num_threads):
+        n = 'immediate_exception_raised_non_daemon-%s' % i
+        t = threading.Thread(target=immediate_exception_raised_worker, name=n)
+        t.start()
+    LOGGER.info('==== Finished launching non-Daemon Threads ====')
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     file_handler = logging.FileHandler('threading_example.log')
@@ -150,4 +167,5 @@ if __name__ == "__main__":
     # main_run_infinite_loop_daemon_thread()
     # main_run_finite_loop_nondaemon_and_infinite_daemon_thread()
     # main_run_nondaemon_with_start_join()
-    main_run_nondaemon_with_start_first_join_later()
+    # main_run_nondaemon_with_start_first_join_later()
+    main_run_immediate_exception_raised_non_daemon_thread()
