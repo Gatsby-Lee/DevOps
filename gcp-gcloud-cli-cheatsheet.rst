@@ -3,7 +3,9 @@ GCP gcloud cli cheatsheet
 
 ref: https://cloud.google.com/sdk/gcloud/reference/
 
+
 gcloud config
+--------------
 
 .. code-block:: bash
 
@@ -13,7 +15,62 @@ gcloud config
   disable_usage_reporting = True
   project = hello-test-development1
 
-gcloud compute
+  $ gcloud config set project hello-test-development2
+  Updated property [core/project].
+
+  $ gcloud config set compute/zone us-central1-c
+  Updated property [compute/zone].
+  $ gcloud config list
+  [compute]
+  zone = us-central1-c
+  [core]
+  account = hello@test.com
+  disable_usage_reporting = True
+  project = hello-test-development2
+
+
+Compute Engines - Images
+------------------------
+
+.. code-block:: bash
+
+  $ gcloud compute images list --filter="centos"
+  NAME                PROJECT       FAMILY    DEPRECATED  STATUS
+  centos-6-v20190619  centos-cloud  centos-6              READY
+  centos-7-v20190619  centos-cloud  centos-7              READY
+
+Compute Engines - Firewall-rules
+--------------------------------
+
+.. code-block:: bash
+
+  $ gcloud compute firewall-rules list
+  NAME                    NETWORK  DIRECTION  PRIORITY  ALLOW                         DENY  DISABLED
+  default-allow-icmp      default  INGRESS    65534     icmp                                False
+  default-allow-internal  default  INGRESS    65534     tcp:0-65535,udp:0-65535,icmp        False
+  default-allow-rdp       default  INGRESS    65534     tcp:3389                            False
+  default-allow-ssh       default  INGRESS    65534     tcp:22                              False
+
+  $ gcloud compute firewall-rules delete default-allow-ssh
+
+  $ gcloud compute firewall-rules create default-allow-ssh \
+  --network=default --allow tcp:22 --priority 65534
+
+
+Compute Engines - VM
+--------------------
+
+.. code-block:: bash
+
+  $ gcloud compute instances create "my-vm1" \
+  --machine-type="n1-standard-1" \
+  --image-project="centos-cloud" \
+  --image="centos-7-v20190619"
+  Created [https://www.googleapis.com/compute/v1/projects/hello-test-development2/zones/us-central1-c/instances/my-vm1].
+  NAME    ZONE           MACHINE_TYPE   PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP     STATUS
+  my-vm1  us-central1-c  n1-standard-1               10.128.0.2   35.232.238.124  RUNNING
+
+  $
 
 .. code-block:: bash
 
