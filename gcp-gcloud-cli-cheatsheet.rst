@@ -106,3 +106,15 @@ Memorystore
   reservedIpRange: 10.0.0.0/29
   state: UPDATING
   tier: BASIC
+
+
+
+GKE - Cluster
+-------------
+
+.. code-block:: bash
+
+  
+  $ gcloud container clusters create k1
+  Creating cluster k1 in us-central1-c... Cluster is being health-checked...
+  
