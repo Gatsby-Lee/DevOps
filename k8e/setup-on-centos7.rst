@@ -4,6 +4,8 @@ Setup k8e on Centos7
 Install kubectl
 --------------
 
+ref: https://kubernetes.io/docs/tasks/tools/install-kubectl/
+
 .. code-block:: cfg
 
   cat <<EOF > /etc/yum.repos.d/kubernetes.repo
