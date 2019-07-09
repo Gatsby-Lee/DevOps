@@ -59,3 +59,9 @@ Increase uWSGI level limit
 --------------------------
 
 Add into `listsen=1000` into uwsgi.ini or set on command line like `uwsgi --listen=1000`
+
+
+References
+----------
+
+* http://veithen.io/2014/01/01/how-tcp-backlog-works-in-linux.html
