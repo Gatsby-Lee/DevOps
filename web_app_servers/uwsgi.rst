@@ -5,6 +5,11 @@ uWSGI
 References
 ----------
 
+uWSGI Article
+^^^^^^^^^^^^^
+
+* https://github.com/unbit/uwsgi-docs/tree/master/articles
+
 TCP backlog
 ^^^^^^^^^^^
 
@@ -16,8 +21,8 @@ TCP backlog
 * https://uwsgi-docs.readthedocs.io/en/latest/Options.html
 
 
-setting from others
-^^^^^^^^^^^^^^^^^^^
+uWSGI config from others
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 * http://www.jeffwidman.com/blog/802/configuring-a-single-nginx-uwsgi-server-to-serve-multiple-flask-apps/
 
