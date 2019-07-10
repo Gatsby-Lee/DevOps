@@ -5,6 +5,11 @@ uWSGI
 References
 ----------
 
+uWSGI magic variables
+^^^^^^^^^^^^^^^^^^^^^
+
+* https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#magic-variables
+
 uWSGI Article
 ^^^^^^^^^^^^^
 
@@ -26,4 +31,3 @@ uWSGI config from others
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 * http://www.jeffwidman.com/blog/802/configuring-a-single-nginx-uwsgi-server-to-serve-multiple-flask-apps/
-* https://blog.codeship.com/getting-every-microsecond-out-of-uwsgi/

@@ -29,6 +29,7 @@ Access through http
 
 .. code-block:: bash
 
+    $ curl http://127.0.0.1:1717
     {
         "version":"2.0.18",
         "listen_queue":0,

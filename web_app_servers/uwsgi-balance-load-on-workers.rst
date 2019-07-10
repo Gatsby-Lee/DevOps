@@ -3,6 +3,11 @@ Balance Load on Workers
 
 If few workers do most of jobs, add `thunder-lock=true` into uwsgi.ini or append --thunder-lock option.
 
+Why load is not balanced
+------------------------
+
+* https://blog.cloudflare.com/the-sad-state-of-linux-socket-balancing/
+
 
 References
 ----------
