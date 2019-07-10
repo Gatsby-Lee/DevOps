@@ -10,6 +10,7 @@ uWSGI Article
 
 * https://github.com/unbit/uwsgi-docs/tree/master/articles
 
+
 TCP backlog
 ^^^^^^^^^^^
 
@@ -25,5 +26,4 @@ uWSGI config from others
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 * http://www.jeffwidman.com/blog/802/configuring-a-single-nginx-uwsgi-server-to-serve-multiple-flask-apps/
-
-    * https://cra.mr/2013/06/27/serving-python-web-applications
+* https://blog.codeship.com/getting-every-microsecond-out-of-uwsgi/
