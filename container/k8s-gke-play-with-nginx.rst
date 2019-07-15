@@ -57,7 +57,7 @@ Scale nginx service
   nginx-cbc48fcd9-qcmp5   1/1     Running   0          2m17s
   nginx-cbc48fcd9-sqkvg   1/1     Running   0          140m
 
-  # confirm that nginx external-ip is not changed. 
+  # confirm that nginx external-ip is not changed.
   $ kubectl get services
   NAME         TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)        AGE
   kubernetes   ClusterIP      10.0.0.1     <none>          443/TCP        139m
@@ -70,4 +70,4 @@ Delete GKE cluster
 .. code-block:: bash
 
   $ gcloud container clusters delete webfrontend --zone "us-central1-f"
-  
+
