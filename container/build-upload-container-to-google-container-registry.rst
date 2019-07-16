@@ -54,21 +54,37 @@ Upload the Docker image to your private image repository in Google Cloud Registr
     docker build -t "gcr.io/${GCP_PROJECT}/py-web-server:v1" .
 
 
+Upload Container to Google Container Registry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Configure Docker to use gcloud as a Container Registry credential helper (you are only required to do this once).
+
+.. code-block:: bash
 
     PATH=/usr/lib/google-cloud-sdk/bin:$PATH
     gcloud auth configure-docker
+    docker push gcr.io/${GCP_PROJECT}/py-web-server:v1
 
 
-$ docker push gcr.io/${GCP_PROJECT}/py-web-server:v1
+Container can be found in `Container Registry`
 
-Image can be found in Container Registry
-image stored as a bucket (object) in your Google Cloud Storage
+Container Image binary can be found in your Google Cloud Storage
 
 
-docker run -d -p 8888:8888 --name py-web-server -h my-web-server gcr.io/${GCP_PROJECT}/py-web-server:v1
-curl http://localhost:8888
+Run Container with Image in Container Registry
+----------------------------------------------
 
-## Stop webserver container
+Run container / Make request
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-sudo docker rm -f py-web-server
+    docker run -d -p 5000:5000 --name py-web-server -h my-web-server gcr.io/${GCP_PROJECT}/py-web-server:v1
+    curl http://localhost:5000
+
+
+Stop container
+^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    docker rm -f py-web-server
+
