@@ -191,6 +191,8 @@ Forward port
 Request to secure and non-secure endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. code-block:: bash
+
     # On console 1
     $ curl http://127.0.0.1:10080
     {"message":"Hello"}
