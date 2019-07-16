@@ -1,3 +1,6 @@
+Google Kubernetes with Nginx - Coursera
+=======================================
+
 Start Cloud Shell Terminal
 --------------------------
 
@@ -159,8 +162,9 @@ Step 6: Clean up pod and service
     kubernetes   ClusterIP   10.113.0.1   <none>        443/TCP   57m
 
 
-Step 7: Delete cluster
+Delete cluster
+--------------
 
 .. code-block:: bash
 
-    $ gcloud container clusters delete bootcamp
+    gcloud container clusters delete bootcamp
