@@ -577,7 +577,8 @@ verify both hello versions being served by requests.
     $ curl -ks https://`kubectl get svc frontend -o=jsonpath="{.status.loadBalancer.ingress[0].ip}"`/version
 
 
-By default, every request has a chance to be served by the canary deployment. If you want users to get all their responses from the same version, enable session affinity in the configuration file as follows:
+By default, every request has a chance to be served by the canary deployment.
+If you want users to get all their responses from the same version, enable session affinity in the configuration file as follows:
 
 ::
 
@@ -597,11 +598,17 @@ Delete Canary Deployment
 Blue-Green Deployments
 ----------------------
 
-You can use blue-green deployments if it's more beneficial to modify load balancers to point to a new, fully-tested deployment all at once.
+Rolling updates are ideal because they allow you to deploy an application slowly with minimal overhead,
+minimal performance impact, and minimal downtime.
+There are instances where it is beneficial to modify the load balancers to point to that new version only after it has been fully deployed.
+In this case, blue-green deployments are the way to go.
+
+Kubernetes achieves this by creating two separate deployments; one for the old "blue" version and one for the new "green" version.
+Use your existing hello deployment for the "blue" version.
+The deployments will be accessed via a Service which will act as the router.
+Once the new "green" version is up and running, you'll switch over to using that version by updating the Service.
 
 A downside is you need double the resources to host both versions of your application during the switch.
-
-You use two nearly-identical service files (hello-blue and hello-green) to switch between versions. The only difference between these files is their version selector. You could edit the service while it's running and change the version selector, but switching files is easier for labs.
 
 .. code-block:: bash
 
