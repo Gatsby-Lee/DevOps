@@ -48,6 +48,17 @@ Build Container with gcr.io tag
 
 Upload the Docker image to your private image repository in Google Cloud Registry (gcr.io).
 
+To push images to your private registry hosted by gcr,
+
+you need to tag the images with a registry name. The format is [hostname]/[project-id]/[image]:[tag]
+
+For gcr:
+
+* hostname: gcr.io
+* project-id: your project's ID
+* image: your image name
+* tag: any string tag of your choice. If unspecified, it defaults to "latest".
+
 .. code-block:: bash
 
     export GCP_PROJECT=<your_project>
