@@ -46,3 +46,13 @@ Open connection
 .. code-block:: bash
 
     kubectl proxy --port 8081
+
+
+Then use the Cloud Shell Web preview feature to change ports to 8081:
+
+To get to the dashboard, remove /?authuser=0 and append the URL with the following:
+
+::
+
+    /api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/overview?namespace=default
+
