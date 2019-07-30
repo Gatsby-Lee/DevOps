@@ -36,6 +36,8 @@ Check What we have in Redis
 Task details in `celery` queue
 ------------------------------
 
+ref: http://docs.celeryproject.org/en/latest/internals/protocol.html
+
 .. code-block::
 
     {
