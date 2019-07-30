@@ -1,11 +1,8 @@
 Redis Celery Task
 =================
 
-Approch 1: Celery App and Task are in a module.
------------------------------------------------
-
-Celery APP
-^^^^^^^^^^
+Defile Celery App and Task in a module.
+---------------------------------------
 
 redis_celery_task.py
 
@@ -26,7 +23,7 @@ redis_celery_task.py
 
 
 Running the Celery worker server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 .. code-block:: bash
 
@@ -35,12 +32,12 @@ Running the Celery worker server
 
     -------------- celery@mac11102.local v4.3.0 (rhubarb)
     ---- **** -----
-    --- * ***  * -- Darwin-18.7.0-x86_64-i386-64bit 2019-07-29 19:58:11
+    --- * ***  * -- Darwin-18.7.0-x86_64-i386-64bit 2019-07-29 20:20:33
     -- * - **** ---
     - ** ---------- [config]
-    - ** ---------- .> app:         tasks:0x10fca8610
+    - ** ---------- .> app:         redis_celery_task:0x1092e2450
     - ** ---------- .> transport:   redis://localhost:6379//
-    - ** ---------- .> results:     disabled://
+    - ** ---------- .> results:     redis://localhost/
     - *** --- * --- .> concurrency: 8 (prefork)
     -- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
     --- ***** -----
@@ -72,7 +69,7 @@ Check Redis storage
 Calling the `add` task
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Call `add` task
+**Call `add` task**
 
 .. code-block:: python
 
@@ -83,8 +80,8 @@ Call `add` task
     >>> r.ready()
     True
 
-
-**Results in Redis**
+Check Redis storage
+^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -99,3 +96,27 @@ Call `add` task
     127.0.0.1:6379> get "celery-task-meta-e66505a8-5411-472d-be51-31e5b1296357"
     "{\"status\": \"SUCCESS\", \"result\": 2, \"traceback\": null, \"children\": [], \"task_id\": \"e66505a8-5411-472d-be51-31e5b1296357\", \"date_done\": \"2019-07-30T03:21:40.995689\"}"
 
+
+Get/Delete results
+^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    >>> r.get()
+    2
+    # multiple calles don't raise error
+    >>> r.forget()
+    >>> r.forget()
+    >>> r.forget()
+
+
+Results in Redis
+^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    127.0.0.1:6379> keys *
+    1) "_kombu.binding.celery"
+    2) "_kombu.binding.celeryev"
+    3) "_kombu.binding.celery.pidbox"
+    4) "unacked_mutex"
