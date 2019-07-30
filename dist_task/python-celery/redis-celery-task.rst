@@ -1,7 +1,7 @@
 Redis Celery Task
 =================
 
-Defile Celery App and Task in a module.
+Define Celery App and Task in a module.
 ---------------------------------------
 
 redis_celery_task.py
@@ -68,8 +68,6 @@ Check Redis storage
 
 Calling the `add` task
 ^^^^^^^^^^^^^^^^^^^^^^
-
-**Call `add` task**
 
 .. code-block:: python
 
