@@ -74,3 +74,13 @@ Task details in `celery` queue
             "delivery_tag":"25fd33d3-6ea0-43e1-b75a-aafa860c12e1"
         }
     }
+
+
+Decoded Body in Task with base64
+--------------------------------
+
+.. code-block:: python
+
+    >>> import base64
+    >>> base64.b64decode('W1sxLCAxXSwge30sIHsiY2FsbGJhY2tzIjogbnVsbCwgImVycmJhY2tzIjogbnVsbCwgImNoYWluIjogbnVsbCwgImNob3JkIjogbnVsbH1d') 
+    b'[[1, 1], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]'
