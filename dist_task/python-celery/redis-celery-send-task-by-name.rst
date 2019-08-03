@@ -69,3 +69,23 @@ Check registered Tasks with `mytask.add`
     [2019-07-29 22:04:01,349: INFO/MainProcess] celery@mac11102.local ready.
     [2019-07-29 22:04:30,425: INFO/MainProcess] Received task: mytask.add[628709cd-8d6f-409d-861e-d0a437234648]
     [2019-07-29 22:04:30,435: INFO/ForkPoolWorker-6] Task mytask.add[628709cd-8d6f-409d-861e-d0a437234648] succeeded in 0.007305294999998324s: 3
+
+
+Calling the `add` task by name
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Create Celery Instance and send_task with name `mytask.add`
+
+.. code-block:: python
+
+    from celery import Celery
+
+    celery_app = Celery('redis_celery_task',
+                        backend='redis://localhost',
+                        broker='redis://localhost',
+                        )
+
+
+    r = celery_app.send_task('mytask.add', args=[1, 2])
+    print(r.get())
+    r.forget()
