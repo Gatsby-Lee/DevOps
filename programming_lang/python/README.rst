@@ -16,6 +16,11 @@ Install mysqlclient-python
 
   LDFLAGS=-L/usr/local/opt/openssl/lib pip install mysqlclient
 
+Strip
+-----
+
+* https://stackoverflow.com/questions/38285654/why-is-str-strip-so-much-faster-than-str-strip
+
 
 External References
 -------------------
