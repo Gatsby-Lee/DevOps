@@ -16,6 +16,20 @@ Install mysqlclient-python
 
   LDFLAGS=-L/usr/local/opt/openssl/lib pip install mysqlclient
 
+Python 2.7 Console printing issue
+---------------------------------
+
+.. code-block:: python
+
+    import sys
+    import codecs
+    codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
+    if sys.stdout.encoding != 'UTF-8':
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
+    if sys.stderr.encoding != 'UTF-8':
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
+
+
 Strip
 -----
 
