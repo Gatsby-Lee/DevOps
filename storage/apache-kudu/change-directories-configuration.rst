@@ -7,7 +7,7 @@ Background
 KUDU tablet server can be configured to store data in multiple directories on different devices.
 
 
-Issuse 1: One of device is BAD
+Issuse 1: One of devices is BAD
 ------------------------------
 
 A disk failure occurs that does not lead to a crash. (Based `documetation <https://kudu.apache.org/docs/administration.html#disk_failure_recovery>`_)
