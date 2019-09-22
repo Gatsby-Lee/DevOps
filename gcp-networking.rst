@@ -30,13 +30,13 @@ Pricing
 Network Service Tiers
 ---------------------
 
-* Premium Tier
+* Premium Tier: Less Hop Points since the traffic Google's Global Network
 
-  * Less Hop Points since the traffic Google's Global Network
+Premium Tier delivers traffic over Google’s well-provisioned, low-latency, highly reliable global network. This network consists of an extensive global private fiber network with over 100 points of presence (POPs) across the globe.
 
-* Standard Tier
+* Standard Tier: More Hop Points since the traffic goes through Public ISP.
 
-  * More Hop Points since the traffic goes through Public ISP.
+Standard Tier is a new, lower-cost offering. The network quality of this tier is comparable to the quality of other public cloud providers and regional network services, such as regional load balancing with one VIP per region, but lower than the quality of Premium Tier.
 
 
 Network Monitoring
