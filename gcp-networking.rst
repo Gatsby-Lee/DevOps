@@ -54,6 +54,207 @@ Network services > Cloud NAT
   * Name: nat-router
 
 
+Automating the Deployment of Networks Using Deployment Manager
+--------------------------------------------------------------
+
+gcloud deployment-manager types list | grep network
+
+
+.. code-block:: ymal
+
+  # autonetwork-template.jinja
+  resources:
+  - name: {{ env["name"] }}
+    type: compute.v1.network
+    properties:
+      # automatically creates a subnetwork
+      autoCreateSubnetworks: true
+
+
+.. code-block:: ymal
+
+  # customnetwork-template.jinja
+  resources:
+  - name: {{ env["name"] }}
+    type: compute.v1.network
+    properties:
+      autoCreateSubnetworks: false
+
+
+.. code-block:: yaml
+
+  # subnetwork-template.jinja
+  resources:
+  - name: {{ env["name"] }}
+    type: compute.v1.subnetwork
+    properties:
+      ipCidrRange: {{ properties["ipCidrRange"] }}
+      network: {{ properties["network"] }}
+      region: {{ properties["region"] }}
+
+
+.. code-block:: yaml
+
+  # firewall-template.jinja
+  resources:
+  - name: {{ env["name"] }}
+    type: compute.v1.firewall
+    properties:
+      network: {{ properties["network"] }}
+      sourceRanges: ["0.0.0.0/0"]
+      allowed:
+      - IPProtocol: {{ properties["IPProtocol"] }}
+        ports: {{ properties["Port"] }}
+
+
+.. code-block:: yaml
+
+  # instance-template.jinja
+  resources:
+  - name: {{ env["name"] }}
+    type: compute.v1.instance  
+    properties:
+       machineType: zones/{{ properties["zone"] }}/machineTypes/{{ properties["machineType"] }}
+       zone: {{ properties["zone"] }}
+       networkInterfaces:
+        - network: {{ properties["network"] }}
+          subnetwork: {{ properties["subnetwork"] }}
+          accessConfigs:
+          - name: External NAT
+            type: ONE_TO_ONE_NAT
+       disks:
+        - deviceName: {{ env["name"] }}
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-9
+
+
+.. code-block:: yaml
+
+  # config.yaml
+  imports:
+  - path: autonetwork-template.jinja
+  - path: customnetwork-template.jinja
+  - path: subnetwork-template.jinja
+  - path: firewall-template.jinja
+  - path: instance-template.jinja
+
+  # mynetwork setting
+  resources:
+  - name: mynetwork
+    type: autonetwork-template.jinja
+
+  - name: mynetwork-allow-http-ssh-rdp
+    type: firewall-template.jinja
+    properties:
+      network: $(ref.mynetwork.selfLink)
+      IPProtocol: TCP
+      Port: [22, 80, 3389]
+
+  - name: mynetwork-allow-icmp
+    type: firewall-template.jinja
+    properties:
+      network: $(ref.mynetwork.selfLink)
+      IPProtocol: ICMP
+      Port: []
+
+  # managementnet setting
+  - name: managementnet
+    type: customnetwork-template.jinja
+
+  - name: managementsubnet-us
+    type: subnetwork-template.jinja
+    properties:
+      ipCidrRange: 10.130.0.0/20
+      network: $(ref.managementnet.selfLink)
+      region: us-central1
+
+  - name: managementnet-allow-http-ssh-rdp
+    type: firewall-template.jinja
+    properties:
+      network: $(ref.managementnet.selfLink)
+      IPProtocol: TCP
+      Port: [22, 80, 3389]
+
+  - name: managementnet-allow-icmp
+    type: firewall-template.jinja
+    properties:
+      network: $(ref.managementnet.selfLink)
+      IPProtocol: ICMP
+      Port: []
+
+  # privatenet setting
+  - name: privatenet
+    type: customnetwork-template.jinja
+
+  - name: privatesubnet-us
+    type: subnetwork-template.jinja
+    properties:
+      ipCidrRange: 172.16.0.0/24
+      network: $(ref.privatenet.selfLink)
+      region: us-central1
+
+  - name: privatesubnet-eu
+    type: subnetwork-template.jinja
+    properties:
+      ipCidrRange: 172.20.0.0/24
+      network: $(ref.privatenet.selfLink)
+      region: europe-west1
+
+  - name: privatenet-allow-http-ssh-rdp
+    type: firewall-template.jinja
+    properties:
+      network: $(ref.privatenet.selfLink)
+      IPProtocol: TCP
+      Port: [22, 80, 3389]
+
+  - name: privatenet-allow-icmp
+    type: firewall-template.jinja
+    properties:
+      network: $(ref.privatenet.selfLink)
+      IPProtocol: ICMP
+      Port: []
+
+  # instances
+  - name: mynet-us-vm
+    type: instance-template.jinja
+    properties:
+      zone: us-central1-a
+      machineType: n1-standard-1
+      network: $(ref.mynetwork.selfLink)
+      subnetwork: regions/us-central1/subnetworks/mynetwork
+
+  - name: mynet-eu-vm
+    type: instance-template.jinja
+    properties:
+      zone: europe-west1-d
+      machineType: n1-standard-1
+      network: $(ref.mynetwork.selfLink)  
+      subnetwork: regions/europe-west1/subnetworks/mynetwork
+
+  - name: privatenet-us-vm
+    type: instance-template.jinja
+    properties:
+      zone: us-central1-a
+      machineType: n1-standard-1
+      network: $(ref.privatenet.selfLink)
+      subnetwork: $(ref.privatesubnet-us.selfLink)
+
+  - name: managementnet-us-vm
+    type: instance-template.jinja
+    properties:
+      zone: us-central1-a
+      machineType: n1-standard-1
+      network: $(ref.managementnet.selfLink)
+      subnetwork: $(ref.managementsubnet-us.selfLink)
+
+
+.. code-block:: bash
+
+  gcloud deployment-manager deployments create gcpnet --config=config.yaml
+
 
 Network Monitoring
 ------------------
