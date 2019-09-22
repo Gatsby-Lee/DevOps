@@ -1,6 +1,8 @@
 GCP Networking
 ==============
 
+https://cloud.google.com/solutions/best-practices-vpc-design
+
 Hybrid connectivity
 -------------------
 
