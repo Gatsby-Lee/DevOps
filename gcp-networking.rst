@@ -39,6 +39,22 @@ Premium Tier delivers traffic over Google’s well-provisioned, low-latency, hig
 Standard Tier is a new, lower-cost offering. The network quality of this tier is comparable to the quality of other public cloud providers and regional network services, such as regional load balancing with one VIP per region, but lower than the quality of Premium Tier.
 
 
+Configure a Cloud NAT gateway
+-----------------------------
+
+Cloud NAT is a regional resource. You can configure it to allow traffic from all ranges of all subnets in a region, from specific subnets in the region only, or from specific primary and secondary CIDR ranges only.
+
+Network services > Cloud NAT
+
+* Gateway name: nat-config
+* VPC network: privatenet
+* Region: us-central1
+* Create new router
+
+  * Name: nat-router
+
+
+
 Network Monitoring
 ------------------
 
