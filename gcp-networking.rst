@@ -3,6 +3,107 @@ GCP Networking
 
 https://cloud.google.com/solutions/best-practices-vpc-design
 
+3 VPC Network Types
+-------------------
+
+* Default
+
+  * Every Project
+  * One subnet per region
+  * Default firewall rule
+
+
+* Auto mode
+
+  * Default network
+  * One subnet per region
+  * Regional IP allocation
+  * Fixed /20 subnetwork perregion
+  * Expandable up to /16
+
+
+* Custom mode
+
+  * No default subnets
+  * Full control of IP ranges
+  * Regional IP allocation
+  * Expandable to any RFC 1918 size
+
+
+Subnet
+------
+
+* cross zones ( us-east1-a, us-east1-b ... ) in a region
+* 4 IPs are reserved in Subnets
+* RFC 1918 address spaces
+* Can expand without downtime, but not shrink
+* Aut-mode can be expanded from /20 to /16
+* Avoid large subnets
+ 
+
+VM Instance IP
+--------------
+
+* OS of VM doesn't know external IP regardless ephemeral or static IP. ( ifconfig only show internal IP )
+* The external IP is mapped to VMs internal IP transparently by VPC.
+
+
+DNS resolution for internal address
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Each VM Instance has a **hostname** that can be resolved to an internal IP.
+
+  * The hostname is the same as the instance name.
+  * FQDN is [hostname].c.[project-id].internal
+  
+* Name resolution is handled by **internal DNS**
+
+  * Provided as part of Compute Engine
+  * Configured via DHCP
+  * Provides answer for internal and external IP
+
+
+DNS resolution for external address
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* DNS zone can be hosted using Cloud DNS
+
+
+Routes / Firewall
+-----------------
+
+A route is a mapping of an IP range to a destination
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Every VPC network has
+
+* Routes that let VM Instance in a VPC network send traffic directly to each other.
+* A default route that directs packets to destinations that are outside the network.
+
+Firewall rules must also allow the packet.
+
+
+Routes map traffic to destination networks
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Destinations in CIDR notation
+* Applies to traffic egressing a VM
+* Forwards traffic to most specific route
+* Traffic is delivered only if it also matches a firewall rule
+* Created when a subnet is created
+* Enables VMs on same network to communicate 
+
+
+Firewall rules protects VM Instance from unapproved connections
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* VPC network functions as a distributed firewall
+* Firewall rules are applied to the network as a whole
+* Connections are allowed or denied at the VM instance level
+* Firewall rules are staeful
+* Implied deny all ingress and allow all egress
+
+
 Hybrid connectivity
 -------------------
 
@@ -450,17 +551,6 @@ sample: https://registry.terraform.io/browse/modules?provider=google&verified=tr
   terraform apply
 
 
-
-Network Monitoring
-------------------
-
-
-Network Logging
----------------
-
-
-
-
 Dynamic VPN gateways with Cloud Routers
 ---------------------------------------
 
@@ -538,3 +628,15 @@ Dynamic VPN gateways with Cloud Routers
     * Peer ASN: 65470
     * Cloud Router BGP IP: 169.254.0.2
     * BGP peer IP: 169.254.0.1
+
+
+Network Monitoring
+------------------
+
+
+Network Logging
+---------------
+
+* VPC Subnet can be created with feature called, Log Flow.
+* Log Flow goes to Monitoring > Logging.
+* This Logging info can be queried through BigQuery ( It looks streaming data From GCE > Logging > BigQuery )
