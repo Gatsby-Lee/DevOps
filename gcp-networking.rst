@@ -104,6 +104,22 @@ Firewall rules protects VM Instance from unapproved connections
 * Implied deny all ingress and allow all egress
 
 
+Multiple Network Interfaces on VM Instance
+------------------------------------------
+
+VPC Networks are isolated ( by default )
+
+* Commnicate within networks using **internal IP**
+* Commnicate across networks using **external IP**
+
+
+Mutiple Network Interfaces
+
+* Network Interface controllers (NICs)
+* Each NIC is attached to a VPN network
+* Communicate across networks using **internal IP**
+
+
 Hybrid connectivity
 -------------------
 
