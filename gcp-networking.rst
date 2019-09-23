@@ -124,6 +124,23 @@ Mutiple Network Interfaces
 https://cloud.google.com/vpc/docs/create-use-multiple-interfaces#limitations
 
 
+VM Instance with multiple Network Interfaces
+--------------------------------------------
+
+.. code-block:: ip route
+
+  default via 172.16.0.1 dev eth0
+  10.128.0.0/20 via 10.128.0.1 dev eth2
+  10.128.0.1 dev eth2 scope link
+  10.130.0.0/20 via 10.130.0.1 dev eth1
+  10.130.0.1 dev eth1 scope link
+  172.16.0.0/24 via 172.16.0.1 dev eth0
+  172.16.0.1 dev eth0 scope link
+
+
+The primary interface eth0 gets the default route (default via 172.16.0.1 dev eth0), and all three interfaces, eth0, eth1, and eth2, get routes for their respective subnets. Because the subnet of mynet-eu-vm (10.132.0.0/20) is not included in this routing table, the ping to that instance leaves vm-appliance on eth0 (which is on a different VPC network). You could change this behavior by configuring policy routing as documented here.
+
+
 Hybrid connectivity
 -------------------
 
