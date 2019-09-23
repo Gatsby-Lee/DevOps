@@ -119,6 +119,10 @@ Mutiple Network Interfaces
 * Each NIC is attached to a VPN network
 * Communicate across networks using **internal IP**
 
+.. image:: images/multiple_network_interfaces.png
+
+https://cloud.google.com/vpc/docs/create-use-multiple-interfaces#limitations
+
 
 Hybrid connectivity
 -------------------
