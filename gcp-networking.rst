@@ -140,6 +140,15 @@ VM Instance with multiple Network Interfaces
 
 The primary interface eth0 gets the default route (default via 172.16.0.1 dev eth0), and all three interfaces, eth0, eth1, and eth2, get routes for their respective subnets. Because the subnet of mynet-eu-vm (10.132.0.0/20) is not included in this routing table, the ping to that instance leaves vm-appliance on eth0 (which is on a different VPC network). You could change this behavior by configuring policy routing as documented here.
 
+Shared VPC
+----------
+
+* https://www.youtube.com/watch?v=4MtfyViH9t0
+* https://cloud.google.com/vpc/docs/provisioning-shared-vpc
+
+
+.. image:: images/shared_vpc_vs_peering.png
+
 
 Hybrid connectivity
 -------------------
