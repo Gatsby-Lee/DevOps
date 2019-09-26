@@ -284,7 +284,15 @@ It might take a couple of minutes for the security policy to take affect. If you
 Cloud CDN
 ---------
 
+* https://cloud.google.com/cdn/docs/locations
 
+
+Configure Cloud CDH
+>>>>>>>>>>>>>>>>>>>
+
+* Create and populate a Cloud Storage bucket
+* Create an HTTP load balancer with Cloud CDN
+* Verify the caching of your bucket's content ( Logging )
 
 
 Hybrid connectivity
