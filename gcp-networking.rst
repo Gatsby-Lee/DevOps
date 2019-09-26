@@ -225,8 +225,8 @@ Backend Services
   
 
 
-Configuring an HTTP Load Balancer
----------------------------------
+Configuring an HTTP Load Balancer for Practice
+----------------------------------------------
 
 1. Create HTTP and health check firewall rules
 2. Configure two instance templates
@@ -279,6 +279,11 @@ Configure Cloud Armor
   * Priority: 1000
 
 It might take a couple of minutes for the security policy to take affect. If you are able to access the backends, keep trying until you get the 403 Forbidden error.
+
+
+Cloud CDN
+---------
+
 
 
 
