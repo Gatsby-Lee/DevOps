@@ -287,12 +287,91 @@ Cloud CDN
 * https://cloud.google.com/cdn/docs/locations
 
 
-Configure Cloud CDH
+Configure Cloud CDN
 >>>>>>>>>>>>>>>>>>>
 
 * Create and populate a Cloud Storage bucket
 * Create an HTTP load balancer with Cloud CDN
 * Verify the caching of your bucket's content ( Logging )
+
+
+SSL Proxy Load-Balancing
+------------------------
+
+* Global load-balancing for encrypted, non-HTTP traffic
+* Terminates SSL sessions at balancing layer - And balance the connections across instances using SSL or TCP ( closest one having capacity )
+* IPv4 or IPv6 clients
+* Benefits:
+
+  * Intelligent Routing
+  * Certificate management
+  * Security patching
+  
+* https://cloud.google.com/load-balancing/docs/ssl/#overview
+
+.. image:: images/ssl_proxy_load_balancing.png
+
+
+TCP Load-Balancing
+------------------
+
+* Global load-balancing for unencrypted, non-HTTP traffic
+* Terminates SSL sessions at balancing layer
+* IPv4 or IPv6 clients
+* Benefits:
+
+  * Intelligent Routing
+  * Security patching
+
+* https://cloud.google.com/load-balancing/docs/tcp/#overview
+
+
+Network Load-Balancing
+----------------------
+
+* Regional, non-proxied load-balancer ( traffic is passed through the load-balancer instead of being proxied )
+* Forwarding rules(IP protocol data)
+* Traffic
+
+  * UDP
+  * TCP/SSL ports
+
+* Backend
+
+  * Instance group
+  * Target pool
+
+
+Internal Load-Balancing
+-----------------------
+
+* Regional, private load balancing
+
+  * VM instances in same region
+  * RFC 1918 IP Address
+
+* TCP/UDP Traffic
+* Reduced latency(since staging internal in Google), simpler configuration
+* software-defined, fully distributed load balancing ( built on top of Andromeda )
+
+* https://cloudplatform.googleblog.com/2014/04/enter-andromeda-zone-google-cloud-platforms-latest-networking-stack.html
+
+
+.. image:: images/internal_load_balancing.png
+
+Configure Internal Load-Balancing
+---------------------------------
+
+.. image:: images/configure_internal_load_balacing.png
+
+
+Choose a load balancer
+----------------------
+
+.. image:: images/ipv6_termination_for_load_balancing.png
+
+.. image:: images/choosing_a_load_balancer.png
+
 
 
 Hybrid connectivity
