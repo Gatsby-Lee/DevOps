@@ -224,13 +224,61 @@ Backend Services
   * A capacity scaler ( celiling % of CPU/Rate targets )
   
 
-Cloud Armor
------------
+
+Configuring an HTTP Load Balancer
+---------------------------------
+
+1. Create HTTP and health check firewall rules
+2. Configure two instance templates
+3. Create two managed instance groups
+4. Configure an HTTP load balancer with IPv4 and IPv6
+5. Stress test an HTTP load balancer
+6. Blacklist an IP address to restrict access to an HTTP load balancer
+
+
+Metadata ( For testing )
+
+* startup-script-url:  gs://cloud-training/gcpnet/httplb/startup.sh
+
+
+Configure the HTTP load balancer
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Health checks determine which instances can receive new connections. This HTTP health check polls instances every 5 seconds, waits up to 5 seconds for a response, and treats 2 successful or 2 failed attempts as healthy or unhealthy, respectively.
+
+HTTP(S) load balancing supports both IPv4 and IPv6 addresses for client traffic. Client IPv6 requests are terminated at the global load balancing layer and then proxied over IPv4 to your backends.
+
+
+Stress Test
+>>>>>>>>>>>
+
+.. code-block:: bash
+
+  sudo apt-get -y install siege
+  siege -c 250 http://35.227.238.156
+
+
+
+Cloud Armor - Blacklist IP
+--------------------------
 
 * Cloud Armor enables you to restrict or allow access to the HTTPS load balancer at the edge of the GCP network.
 * A DDos attack can be blocked directly at the edge without consuming resources or entering your VPC network.
 
 .. image:: images/how_cloud_armor_works.png
+
+
+Configure Cloud Armor
+>>>>>>>>>>>>>>>>>>>>>
+
+* Default rule action: Allow
+* Add rule
+
+  * Action: Deny
+  * Deny status: 403 (Forbidden)
+  * Priority: 1000
+
+It might take a couple of minutes for the security policy to take affect. If you are able to access the backends, keep trying until you get the 403 Forbidden error.
 
 
 
