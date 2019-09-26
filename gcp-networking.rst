@@ -150,6 +150,90 @@ Shared VPC
 .. image:: images/shared_vpc_vs_peering.png
 
 
+VPC Peering
+-----------
+
+* Peered VPC networks reamin administratively seprate
+* Each side of a peering assocation is set up independently ( one side can disconnect )
+* No Subnet IP overlapping
+* Transitive peering is not supported. ( A-B-C doesn't make A-C communication )
+* Compute engines' internal DNS names are created in a VPC network and those are not accessible to peer VPC networks.
+* VPC Peering generats Peering Routes.
+
+
+Load Balancer
+-------------
+
+Global
+>>>>>>
+
+* HTTP(S)
+* SSL Proxy
+* TCP Proxy
+
+
+Regional
+>>>>>>>>
+
+* Internal TCP/UDP
+* Network TCP/UDP
+
+
+Managed Instance groups autoscaling
+-----------------------------------
+
+* Dynamicall add/remove instances
+
+  * Increase/Decrease in load
+  
+* Autoscaling policy
+
+  * CPU Utilization
+  * Load balancing capacity
+  * Monitoring metrics
+  * Queue based workloads
+
+
+HTTPS Load Balancing
+--------------------
+
+* Global Load balancing
+* Anycast IP address
+* HTTP on port 80 or 8080
+* HTTs on port 443
+* IPv6 and IPv4 Clients
+* Autoscaling
+* URL maps
+
+Architecture of an HTTP(S) load balancer
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: images/achitecture_of_http_loadbalancing.png
+
+
+Backend Services
+>>>>>>>>>>>>>>>>
+
+* Health Check
+* Session affinity (optional): attempts to send all requests from the same client to the same virtual machine instance
+* Time setting (30sec default)
+* One or more backends
+
+  * An instance group ( managed or unmanaged )
+  * A balancing mode ( CPU utilization or RPS )
+  * A capacity scaler ( celiling % of CPU/Rate targets )
+  
+
+Cloud Armor
+-----------
+
+* Cloud Armor enables you to restrict or allow access to the HTTPS load balancer at the edge of the GCP network.
+* A DDos attack can be blocked directly at the edge without consuming resources or entering your VPC network.
+
+.. image:: images/how_cloud_armor_works.png
+
+
+
 Hybrid connectivity
 -------------------
 
