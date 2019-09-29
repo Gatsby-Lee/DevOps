@@ -509,11 +509,11 @@ Condtion - Pattern matching
 
   * Case sensitive
   * string literal, wildcard match with asterix, 
-  * `~` and `LIKE` does same thing
+  * tilt and `LIKE` does same thing
 
 * JavaRegex
 
-  * `~~` does same thing
+  * double tilts does same thing
 
 * MatchesPath
 
