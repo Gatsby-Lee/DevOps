@@ -528,3 +528,57 @@ Route Rules
  
 .. image:: images/gcp_apigee/route_rules.png
 
+
+Policy
+------
+
+.. image:: images/gcp_apigee/api_policy.png
+
+
+Traffic managment
+-----------------
+
+Spike Arrest
+>>>>>>>>>>>>
+
+* Help protect API proxy's target backend against severe traffic skikes and denial of service attack
+* Used to control requests by second and minite
+* Typically used in **preflow**
+
+
+Quota
+>>>>>
+
+* Typically used in **preflow**
+* Reset Quota is used to reset quota
+
+
+Concurrent Rate Limit
+>>>>>>>>>>>>>>>>>>>>>
+
+* Throttles inbound connections from Edge to backend serviers
+* used to limit the number of concurrent connections
+* Not typically used, but available
+* Need to be attached to both the request and response flows in the Target Endpoint
+
+
+Response Cache
+>>>>>>>>>>>>>>
+
+* used to cache the whole HTTP response
+* improve performance
+* Policy attached in both the request and response flows
+* Typically only used with GET calls
+
+
+Cache
+-----
+
+* Used to cache specfic pieces of data within the proxy
+* Examples of using cache
+
+  * tokens, service callout response, data from previous calls, etc
+
+* Use the `populate`, `lookup`, and `invalidate` policies to control the cache
+
+
