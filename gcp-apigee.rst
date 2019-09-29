@@ -529,14 +529,18 @@ Route Rules
 .. image:: images/gcp_apigee/route_rules.png
 
 
-Policy
-------
+API Policy
+----------
 
 .. image:: images/gcp_apigee/api_policy.png
 
 
-Traffic managment
------------------
+API Policy - Traffic managment
+------------------------------
+
+* https://docs.apigee.com/api-platform/develop/comparing-quota-spike-arrest-and-concurrent-rate-limit-policies
+* https://docs.apigee.com/api-platform/develop/rate-limiting
+
 
 Spike Arrest
 >>>>>>>>>>>>
@@ -572,7 +576,7 @@ Response Cache
 
 
 Cache
------
+>>>>>
 
 * Used to cache specfic pieces of data within the proxy
 * Examples of using cache
@@ -580,5 +584,60 @@ Cache
   * tokens, service callout response, data from previous calls, etc
 
 * Use the `populate`, `lookup`, and `invalidate` policies to control the cache
+
+
+API Policy - Mediation
+----------------------
+
+* Format Trasform policy ( e.g.: XML > JSON )
+* Message Validation
+* Policay can be used at any point in the proxy
+* Assign Message ( Create or Update )
+  
+  * Request
+  * Response
+  * Flow variables
+  
+* Extrac variables
+
+  * Extract data from:
+
+    * Request
+    * Response
+    * JSON or XML objects
+  
+  * Use a text pattern to extract the data
+
+
+.. image:: images/gcp_apigee/mediation_extract_var_assign_msg.png
+
+* Access Entity
+
+  * Access profiles for
+  
+    * Developer
+    * Developer App
+    * API Product
+    * Company
+    * Company developer
+    * Consumer ID
+    
+* Key value Map ( KVM ) Operations
+
+  * Access KV storaged in Apigee Edge:
+  
+    * GET, PUT, DELETE
+    
+
+API Policy - Security
+---------------------
+
+* Base64 Auth
+* XML/JSON/Regex Threat Protection
+* Verify API Key
+* OAuth v1.0a
+* OAuth 2
+* SAML
+* Access Control
 
 
