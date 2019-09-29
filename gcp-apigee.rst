@@ -467,10 +467,63 @@ Conditions
 * Results are boolean
 * Allows chaining
 
+
+Condition Chaning
+>>>>>>>>>>>>>>>>>
+
 .. image:: images/gcp_apigee/condition_chaining.png
+
+Condition Format
+>>>>>>>>>>>>>>>>
 
 .. image:: images/gcp_apigee/condition_format.png
 
+
+Condition - Policy Execution
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+If `flow variable` is accessed outside of scope, Null value will be returned.
+
 .. image:: images/gcp_apigee/condition_policy_execution.png
 
-<Condition>{variable.name}{operator}{"value"}</Condition>
+
+Condtion - Flow Execution
+>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Only first matched condition will be executed. 
+* Since conditions are evaluated top-bottom, put catch-all-flow at last
+
+.. image:: images/gcp_apigee/condtion_flow_execution.png
+
+
+Condtion - Target End Point Route Selection
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: images/gcp_apigee/condition_target_end_point_route_selection.png
+
+
+Condtion - Pattern matching
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Matches
+
+  * Case sensitive
+  * string literal, wildcard match with asterix, 
+  * `~` and `LIKE` does same thing
+
+* JavaRegex
+
+  * `~~` does same thing
+
+* MatchesPath
+
+  * similar to `Matches`
+  * support double `asterix`
+  * single `asterix` matches one path element
+  * double `asterix` matche one or many path elements
+  
+ 
+ Route Rules
+ >>>>>>>>>>>
+ 
+ .. image:: images/gcp_apigee/route_rules.png
