@@ -447,3 +447,30 @@ Anatomy of an API Proxy
 
 .. image:: images/gcp_apigee/advanced_endpoint_properties.png
 
+
+Build First API
+---------------
+
+* https://docs.apigee.com/api-platform/fundamentals/build-simple-api-proxy
+* https://docs.apigee.com/api-platform/fundamentals/best-practices-api-proxy-design-and-development
+* https://docs.apigee.com/api-platform/debug/using-trace-tool-0
+
+
+Conditions & Route Rules
+-------------------------
+
+Conditions
+>>>>>>>>>>
+
+* Dynamic processing at runtime
+* Define operations on variables
+* Results are boolean
+* Allows chaining
+
+.. image:: images/gcp_apigee/condition_chaining.png
+
+.. image:: images/gcp_apigee/condition_format.png
+
+.. image:: images/gcp_apigee/condition_policy_execution.png
+
+<Condition>{variable.name}{operator}{"value"}</Condition>
