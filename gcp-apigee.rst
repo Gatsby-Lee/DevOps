@@ -523,8 +523,8 @@ Condtion - Pattern matching
   * double `asterix` matche one or many path elements
   
  
- Route Rules
- >>>>>>>>>>>
+Route Rules
+>>>>>>>>>>>
  
- .. image:: images/gcp_apigee/route_rules.png
+.. image:: images/gcp_apigee/route_rules.png
 
