@@ -425,3 +425,25 @@ Key benefits
 * generate docs and tests
 * use spec as code
 
+
+API Development on Google Cloud's Apigee API Platform
+=====================================================
+
+Why Proxy?
+----------
+
+.. image:: images/gcp_apigee/api_proxy_in_edge.png
+
+
+Anatomy of an API Proxy
+-----------------------
+
+
+.. image:: images/gcp_apigee/platform_entities.png
+
+.. image:: images/gcp_apigee/policies.png
+
+.. image:: images/gcp_apigee/falult_rules.png
+
+.. image:: images/gcp_apigee/advanced_endpoint_properties.png
+
