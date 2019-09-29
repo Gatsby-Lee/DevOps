@@ -347,3 +347,81 @@ Versioning Communication
 Maintain old version 6-12mo
 
 
+Response code and Pagination
+----------------------------
+
+Return 404(Not Found) rather than 403(Forbidden)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+In order to prevent malicious user to get idea that a certain id doesn't / exist.
+
+
+Seven most commonly used status code
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* 200 (OK)
+* 201 (Created)
+* 304 (Not modified)
+* 400 (Bad request)
+* 401 (Unauthorized)
+* 404 (Not found)
+* 500 (server error)
+
+
+Avoiding response
+>>>>>>>>>>>>>>>>>
+
+* 200(OK), but response message has 400(Bad Request)
+* response has server application info
+
+
+Suggested response
+>>>>>>>>>>>>>>>>>>
+
+* For 400(Bad request), return doclink, so App developer get more detail.
+* For 500(Server Error), email contact or correlationId
+
+
+Pagination
+>>>>>>>>>>
+
+.. image:: images/gcp_apigee/pagination.png
+
+
+
+OpenAPI Spec
+------------
+
+Formally known as Swagger
+
+
+SpenAPI Specification (OAS) 
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* standard format
+* easy to understand
+* vendor neutral
+* machine readable
+
+
+Elements
+>>>>>>>>
+
+* base path
+* path
+* verbs
+* headers
+* query parameters
+* content types
+* request / response payload
+* etc.
+
+Key benefits
+>>>>>>>>>>>>
+
+* build mock service
+* generate client SDKs
+* source controlled
+* generate docs and tests
+* use spec as code
+
