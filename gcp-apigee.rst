@@ -641,3 +641,494 @@ API Policy - Security
 * Access Control
 
 
+
+Target Servers
+---------------
+
+Buildling Target Authentication
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Hard Code
+* Replace at build time
+* Node.js valut
+* Encrypted KV
+
+
+Setting up Named Target Server
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+If Target servers' hostanme is different depending on test or prod environment, Target Servers' hostname can be configured through Admin > Environments > Target Servers
+
+Multiple Target servers
+>>>>>>>>>>>>>>>>>>>>>>>
+
+Load Balancer
+
+* RoundRobin
+* Weighted
+* LeastConnections
+* Others
+
+  * MaxFailures:
+  * RetryEnabled: retry after I/O error
+  * IsFallback: if all others are unavailable, the use fallback server
+  
+  
+Fault Rules and Error Responses
+-------------------------------
+
+Terminology
+>>>>>>>>>>>
+
+1. Raise Fault policy
+2. Apigee raises an error during policy execution
+3. Fault Rule == Fault Handler ( error flow )
+
+* Raising Fault policy ( raising exception )
+* Fault Handler ( try-catch )
+
+
+Fault Handling
+>>>>>>>>>>>>>>
+
+* Proxy Endpoint evaluates Error bottom to top
+* Target Endpoint evaluates Error top to bottom
+
+.. image:: images/gcp_apigee/fault_handling.png
+
+
+* If Fault Rule doesn't have condition, then it will be executed always.
+* DefaultFaultRule has `<AlwaysEnforce>`. If this is set to true, then although other FaultRule is executed, the default FaultRule is executed as well.
+
+.. image:: images/gcp_apigee/fault_handling_default.png
+
+
+Shared Flow
+-----------
+
+What is Shared Flow?
+
+* A collectino of policies and resouces that can be reused acroess API proxies
+* Typically used for common operation flows ( authetication, logging, etc. )
+
+Shared Flow can be created through **Develop > Shared Flow**
+
+How to add Shared Flow into API Proxy
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+API Proxy > Develop
+
+* Add Policy
+* Under extension > Flow callout, select Sahred Flow
+
+
+Flow Hook
+>>>>>>>>>
+
+* Pre-proxy Flow hook: BEFORE a proxy endpoint executes
+* Pre-target Flow hook: BEFORE a target endpoint executes
+* Post-target Flow hook: AFTER a target endpoint executes
+* Post-proxy Flow hook: AFTER a proxy endpoint executes and right before the response is sent out to the client
+
+Admin > Environments > Flow Hooks Tab
+
+
+.. image:: images/gcp_apigee/shared_flow_hook.png
+
+
+Service Callout and Mash Ups
+----------------------------
+
+Service Callout
+>>>>>>>>>>>>>>>
+
+When to use? Anytime, when more than one request need to be made to backend service.
+
+* Adds another service call to API Proxy flow
+* Supports requests over HTTP & HTTPS
+* Typically used with:
+
+  * Assign Message Policy
+  * Extract Message Policy
+  
+Service Callout Target
+>>>>>>>>>>>>>>>>>>>>>>
+
+* HTTP Target Connection
+
+  * URL
+  * Target Server
+  
+* Local Target Connection
+
+  * API Proxy
+  * Proxy Endpoint
+  * Path
+
+.. image:: images/gcp_apigee/service_callout_mashup.png
+
+
+Caching
+-------
+
+Why Use Caching?
+
+* Performance
+* Stability
+* Scalability
+* Persistence
+* Security
+
+
+Caching Two Levels
+>>>>>>>>>>>>>>>>>>
+
+* In-memory Cache (L1)
+
+  * fast access
+  * certain percentage of memory per message processor
+  * entries are removed in the order of time since last access
+  
+* Persistent Cache (L2)
+
+  * cache datastore per message processor
+  * persisted even if removed from L1
+  * no limit on the number of cache entries
+  * expired only on the basis of expiration settings
+  
+Distributed Caching
+>>>>>>>>>>>>>>>>>>>
+
+Any Message Processor can access same cached data.
+
+.. image:: images/gcp_apigee/distributed_caching.png
+
+
+Caching Policies
+>>>>>>>>>>>>>>>>
+
+* Response cache
+
+  * caches the entire HTTP response (headers, payload, etc. )
+  * configure time-to-live
+  * honor HTTP cache headers
+  * caching of multiple formats
+  * attached at request and response segments
+  
+
+* Populate Cache/Lookup Cache
+
+  * runtime persistence of data across requests
+  * full control over caching, store any objects
+  * configure time-to-live
+  * add/update and read entries using separate policies
+  
+
+.. image:: images/gcp_apigee/cache_lookup_populate_sequence.png
+
+
+Which caching policy to use?
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Use **response cache**
+
+  * identical request and response
+  * reduce unnecessary traffice to backend
+  * reduce latency for common requests
+  
+* Use Populate Cache/Lookup Cache
+
+  * storing custom data objects
+  * to persist across multiple API transactions
+  
+
+Cache Utilization and Optimization
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* use only when needed
+* ensure if cache key is built correctly
+* take advantage of the cache scopre for re-use
+* use the built-in Cache performance dashboard in Analytics
+
+
+Clearing Cache
+>>>>>>>>>>>>>>
+
+* UI
+* Management API
+* InvalidateCache Policy
+
+
+
+API Security on Google Cloud's Apigee API Platform
+==================================================
+
+API Security Fundmentala
+------------------------
+
+
+Protection Against Content Based Attack
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Content Based Attack
+
+  * Message content is a significant attack vector
+  * Policies to mitigate the risk of your backend being compromised by malicious request payloads
+
+* Content Based Security ( putting load into JSON/XML/Regexp Parser )
+
+  * JSON Threat Protection Policy
+  * XML Threat Protection Policy
+  * Regular Expression Threat Protection Policy
+  
+
+OAuth Introduction
+------------------
+
+OAuth Role
+>>>>>>>>>>
+
+* **Resource Owner**
+
+  Owns access to protected resources
+
+* **Resource Server**
+
+  Protected server; accepts access tokens
+
+* **Client**
+
+  application making requests to protected resources
+
+* **Authorization Server**
+
+  Issue access token to client
+
+
+OAuth Review
+>>>>>>>>>>>>
+
+* In OAuth 2.0
+
+  * Client grant access to server resources without sharing resource owner's credentials
+
+* `Client IDs` and `Secrets`
+
+  * used to identify and autheticate application
+
+* Token
+
+  * `Client IDs` and `Secrets` are exchanged for `Access Token`
+  * Grant client access to a resource server
+  * Time bound ( to prevent unauthorized access if token is stolen )
+  
+* Scope
+
+  * limits the tokens access for a resource
+  
+* 4 Grant Type
+
+  * client credentials
+  * password
+  * authorization code
+  * implicit
+
+* Require TLS
+
+  * OAuth 2.0 must be protected via TLS
+  
+
+Getting Access Token
+>>>>>>>>>>>>>>>>>>>>
+
+.. image:: images/gcp_apigee/getting_access_token.png
+
+
+Refreshing Access Token
+>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: images/gcp_apigee/refresh_access_token.png
+
+
+Scope
+>>>>>
+
+* Read
+* Updte
+
+
+OAuth Grant Type
+----------------
+
+.. image:: images/gcp_apigee/oauth_grant_type.png
+
+
+Actors
+>>>>>>
+
+* client credentials
+
+  * client
+  * resouce server
+  
+* owner password
+
+  * User
+  * client
+  * Apigee Edge
+  * Authetication server
+  * Resource server
+  
+* authorization code
+
+  * User
+  * User Agent
+  * client
+  * Apigee Edge ( Authorization server )
+  * Authetication server (Login App)
+  * Resource server 
+
+* implicit
+
+  * User
+  * User Agent
+  * client
+  * Apigee Edge ( Authorization server )
+  * Authetication server (Login App)
+  * Resource server 
+  
+
+Grant Type - client credentials
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* simple, least secure
+* when there is no user context
+* when data doesn't belong to anybody ( like store location )
+
+* **token on each subsequent API call has to be verified by access token policy**
+
+.. image:: images/gcp_apigee/client_credentials_sequence_diagram.png
+
+
+Grant Type - Owner password
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* more complex and secure than `client credentials grant type`
+* owned by a particular user ( user login )
+* resource owner's credential like username/password can be used directly as an authorization grant to obtain an access token
+* This approach should only be used where
+
+  * there is a high trust between resource owner and client(app)
+  * other authorization grant types are not available
+
+* resource owner is involved and the application is trusted
+* migrate from basic auth to access tokens
+* refresh token + access token
+
+.. image:: images/gcp_apigee/password_grant_sequence_diagram.png
+
+
+Grant Type - Authorization
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* when to use?
+
+  * Client wants to use third-party service
+  
+
+.. image:: images/gcp_apigee/authorization_code_sequene_diagram.png
+
+
+
+Grant Type - Implicit
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Browser based
+* simplified version of `Authorization Grant Type`
+* the main difference between `Authorization Grant Type` and `Implicit` is that `Implicit` doesn't return authorization code
+
+
+Transport Security ( TLS )
+--------------------------
+
+Apigee Edge Support for TLS
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* TLS: Public and private cloud
+* One-way TLS: Client verifies server
+* Two-way TLS: Mutual auth between client and server
+
+
+What data is encrypted via TLS?
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Encrypted Data
+
+  * URL
+  * Headers
+  * Query params
+  * HTTP verbs
+  * Payload
+  
+* Destination server & payload size known
+
+
+Sensitive Data and TLS
+>>>>>>>>>>>>>>>>>>>>>>
+
+* Data encrypted in motion
+
+  * not at rest
+  
+* no password in query parameters
+* Avoid any sensitive info in URI
+
+  * User can bookmark URI
+
+* Put sensitive data in payload or headers
+
+
+Apigee Edge Keystore and Truststore
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Keystore: Server Certificate
+* Truststore: valid client certificates
+* Keystore and Truststore are used to for client and target communication
+
+
+.. image:: images/gcp_apigee/one_way_tls.png
+
+.. image:: images/gcp_apigee/two_way_tls.png
+
+.. image:: images/gcp_apigee/configuring_2way_tls.png
+
+
+Securing calls to the backend
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Generally, the backend is locked down
+
+  * don't let APP to be able to call directly to backend
+  
+* Options for securing the communication to the backend server
+
+  * credentials
+  * OAuth ( too complex )
+  * IP whitelisting
+  * Two-way TLS
+  
+
+Data Masking
+>>>>>>>>>>>>
+
+
+SAML
+----
+
+* Exchange authetication and authorization information in XML format
+* security assertions between:
+
+  * Identity provider - generate SAML tokens
+  * service provider - validate SAML tokens
+
+* Apigee acts as `Identity provider` and `service provider`
