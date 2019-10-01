@@ -77,8 +77,19 @@ Step 3: Grant Tiller the server side of Helm, the cluster-admin role in your clu
 
 .. code-block:: bash
 
+    # create service account on namespace=kube-system
     kubectl create serviceaccount tiller --namespace kube-system
     kubectl create clusterrolebinding tiller-admin-binding --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+
+    # get all existing namespace
+    $ kubectl get namespace
+    NAME          STATUS   AGE
+    default       Active   19m
+    kube-public   Active   19m
+    kube-system   Active   19m
+
+    # get all existing serviceaccount
+    kubectl get serviceaccount --namespace=kube-system
 
 
 Step 4: Initialize Helm. This ensures that the server side of Helm (Tiller) is properly installed in your cluster.
