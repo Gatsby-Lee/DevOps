@@ -141,7 +141,11 @@ Step 1: Use the Helm CLI to deploy the chart with your configuration set.
 
 .. code-block:: bash
 
-    $ ./helm install -n cd stable/jenkins -f jenkins/values.yaml --version 1.2.2 --wait
+    $ ./helm search jenkin
+    NAME            CHART VERSION   APP VERSION     DESCRIPTION
+    stable/jenkins  1.7.3           lts             Open source continuous integration server. It supports mu...
+
+    $ ./helm install --name cd stable/jenkins -f jenkins/values.yaml --version 1.2.2 --wait
     NAME:   cd
     LAST DEPLOYED: Sun Jul 21 22:53:46 2019
     NAMESPACE: default
