@@ -82,6 +82,7 @@ Step 3: Grant Tiller the server side of Helm, the cluster-admin role in your clu
     kubectl create clusterrolebinding tiller-admin-binding --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 
     # get all existing namespace
+    # `kubectl get ns` does same thing
     $ kubectl get namespace
     NAME          STATUS   AGE
     default       Active   19m
@@ -231,6 +232,18 @@ Step 3: Configure the Jenkins service account to be able to deploy to the cluste
     $ kubectl create clusterrolebinding jenkins-deploy --clusterrole=cluster-admin --serviceaccount=default:cd-jenkins
     clusterrolebinding.rbac.authorization.k8s.io/jenkins-deploy created
 
+    $ kubectl describe clusterrolebinding jenkins-deploy
+    Name:         jenkins-deploy
+    Labels:       <none>
+    Annotations:  <none>
+    Role:
+      Kind:  ClusterRole
+      Name:  cluster-admin
+    Subjects:
+      Kind            Name        Namespace
+      ----            ----        ---------
+      ServiceAccount  cd-jenkins  default
+
 
 Step 4: Run the following command to setup port forwarding to the Jenkins UI from the Cloud Shell
 
@@ -262,4 +275,27 @@ Step 1: The Jenkins chart will automatically create an admin password for you. T
 
 
 Step 2: To get to the Jenkins user interface, click on the Web Preview button in cloud shell, then click Preview on port 8080.
+
+
+Your progress, and what's next
+------------------------------
+
+You've got a Kubernetes cluster managed by Google Container Engine. You've deployed:
+
+* a Jenkins Deployment
+* a (non-public) service that exposes Jenkins to its agent containers
+
+You have the tools to build a continuous deployment pipeline. Now you need a sample app to deploy continuously.
+
+
+The sample app
+--------------
+
+Deploy the sample app to Kubernetes
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+In this section you will deploy the gceme frontend and backend to Kubernetes using Kubernetes manifest files (included in this repo) that describe the environment that the gceme binary/Docker image will be deployed to. They use a default gceme Docker image that you will be updating with your own in a later section.
+
+You'll have two primary environments - canary and production - and use Kubernetes to manage them.
+
 
