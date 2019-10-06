@@ -17,14 +17,14 @@ Elements
 * **Object Status:** Current state described by Kubernetes
 
 
-.. image:: images/k8e_concept/k8e_compare_state.png
+.. image:: ../images/k8e_concept/k8e_compare_state.png
 
 
 
 **Pods** are the basic building block
 -------------------------------------
 
-.. image:: images/k8e_concept/k8e_pod.png
+.. image:: ../images/k8e_concept/k8e_pod.png
 
 
 * Smallest deployable kubernetes object
@@ -44,7 +44,7 @@ Elements
 Kubernetes Control Plane
 ------------------------
 
-.. image:: images/k8e_concept/k8e_master_and_node.png
+.. image:: ../images/k8e_concept/k8e_master_and_node.png
 
 Master
 >>>>>>
@@ -111,4 +111,4 @@ Benefits of using GKE
 GKE: Zonal / Regional
 >>>>>>>>>>>>>>>>>>>>>
 
-.. image:: images/k8e_concept/k8e_zonal_regional_cluster.png
+.. image:: ../images/k8e_concept/k8e_zonal_regional_cluster.png
