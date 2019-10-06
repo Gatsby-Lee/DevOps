@@ -112,3 +112,62 @@ GKE: Zonal / Regional
 >>>>>>>>>>>>>>>>>>>>>
 
 .. image:: ./images/k8e-concept/k8e_zonal_regional_cluster.png
+
+
+
+Kubernetes Object Management
+----------------------------
+
+* Objects are defined in a YAML file
+* This YAML file defines a desired state for a pod
+* it's possible and recommended to define serveral related objects in one YAML file
+
+Object Name
+>>>>>>>>>>>
+
+.. image:: ./images/k8e-concept/k8e_object_name_unique.png
+
+.. image:: ./images/k8e-concept/k8e_object_name_uid.png
+
+
+Label
+>>>>>
+
+Key-Value
+
+.. image:: ./images/k8e-concept/k8e_label.png
+
+
+Pods and Controller Object
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/k8e-concept/k8e_pods_controller_objects.png
+
+
+
+Deployment Object
+>>>>>>>>>>>>>>>>>
+
+Deployment object would create a ReplicaSet object to manage the Pods.
+
+
+.. image:: ./images/k8e-concept/k8e_deployment.png
+
+.. image:: ./images/k8e-concept/k8e_deployment_yaml.png
+
+
+About Namespace
+>>>>>>>>>>>>>>>
+
+* Kubernetes allows you to abstract a single physical cluster into multiple clusters known as namespaces.
+* Object names need only be unique within a namespace, not acroess all namespaces.
+* Resource quotas can be set acroess cluster. This quotas define limits for reource consumtion within a namespace.
+
+Initial Namespaces
+
+.. image:: ./images/k8e-concept/k8e_initial_namespace.png
+
+And best pratice
+
+.. image:: ./images/k8e-concept/k8e_namespace_neutral_yaml.png
+
