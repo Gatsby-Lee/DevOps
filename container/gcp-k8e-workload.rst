@@ -369,3 +369,27 @@ Deployment strategy - Rolling updates
 
 Deployment strategy - Blue/Green
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8e_workload/deployment_blue_green.png
+
+.. image:: ./images/gcp_k8e_workload/deployment_apply_blue_green.png
+
+
+Deployment strategy - Canary
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8e_workload/deployment_canary.png
+
+.. image:: ./images/gcp_k8e_workload/deployment_apply_canary.png
+
+
+Deployment strategy - Canary
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* All Old Pods will be deleted before createing new pods
+
+
+Deployment Rollback
+>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8e_workload/deployment_rollback.png
