@@ -254,3 +254,118 @@ Deployments defines/describe a desired of state of pods
 
 Once deployment config YAML is submitted Kubernetes master, Kubernetes creates **deployment controller**. Deployment Controller is
 responsible for converting the desired state(config) to reality and keeping the desired state over time.
+
+
+Deployment Usage
+>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8e_workload/deployment_usage.png
+
+
+Three ways to create deployment
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* create a deployment **declaratively** using a manifest file, such as a YAML
+
+.. code-block:: bash
+
+  kubectl apply -f [DEPLOYMENT_FILE]
+  
+  
+* creates a deployment **imperatively**, using a kubectl run command 
+
+.. code-block:: bash
+
+  kubectl run [DEPLOYMENT_NAME] \
+  --image [IMAGE]:[TAG]
+  --replicas 3 \
+  --labels [KEY]=[VALUE] \
+  --port 8080 \
+  --generator deployment/app.v1 \
+  --save-config
+  
+* using GCP Console
+
+
+How to inspect Deployment
+>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl get deployment [DEPLOYMENT_NAME]
+
+
+How to print/output Deployment config in a YAML format
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-blcok:: bash
+
+  kubectl get deployment [DEPLOYMENT_NAME] -o yaml > this.yaml
+  
+  
+How to get more details about Deployment
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl describe deployment [DEPLOYMENT_NAME]
+  
+
+Scaling deployments
+>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8e_workload/service_loadbalancing.png
+
+
+.. code-block:: bash
+
+  # manual-scaling a deployment
+  kubectl scale deployemnt [DEPLOYMENT_NAME] --replicas=5
+  
+  # autos-caling a deployment
+  kubectl autoscale deployemnt [DEPLOYMENT_NAME] --min=5 --max=15 --cpu-percent=75
+  
+
+How to udpate Deployment
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+* update pod specification ( YAML )
+
+  * automatic update rollout will happen
+  * only applicable to the changes in port specifications
+  
+
+* use updated deployment YAML ( kubectl apply -f [DEPLOYMENT_FILE] )
+
+  * allowing to update other specification of a deployment, such as number of replicas
+  
+* use `kubectl set`
+  
+  * allowing to change pod specifications for the deployment, such as images, resources, or selector values.
+
+* use `kubectl edit` 
+
+  * once exit/saved, kubectl automatically applies the updated file.
+  
+* use GCP console
+
+
+Deployment strategy - Rolling updates
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* **max unavailable:** specific number or percentage
+
+.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_unavailable.png
+
+.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_unavailable_percentage.png
+
+
+* **max surge:** specifying max number of pods that can be created concurrently in a new replica set
+
+.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_max_surge.png
+
+.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_max_surge_percentage.png
+
+
+Deployment strategy - Blue/Green
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
