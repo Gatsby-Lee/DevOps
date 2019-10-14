@@ -814,6 +814,8 @@ Cronjobs
 Cluster Scaling
 ---------------
 
+ref: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md
+
 * by manually changing the number of nodes and node pools
 * by configuring additional node pools
 
