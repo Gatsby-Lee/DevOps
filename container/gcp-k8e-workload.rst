@@ -841,22 +841,22 @@ How to resize cluster
   gcloud container clusters resize [CLUSTER_NAME] --node-pool [NODE_POOL_NAME] --size 6
   
   
- Downscaling
- >>>>>>>>>>>
+Downscaling
+>>>>>>>>>>>
  
- Scale down a cluster with autoscaling happens only if
+Scale down a cluster with autoscaling happens only if
  
- * There can be no scale-up events pending.
- * can the node be deleted safely?
+* There can be no scale-up events pending.
+* can the node be deleted safely?
  
- Pod conditions that prevent node deletion
+Pod conditions that prevent node deletion
  
- * not run by a controller
- * has local storage
- * restricted by constraint rules
- * pod has **cluster-autoscaler.kubernetes.io/safe-to-evict** is set to False. The Node where this pod is running won't be seleted to downscale.
- * Restrictive **PodDisruptionBudget** also prevent a node from being deleted.
- * **kubernetes.io/scale-down-disabled** set to True
+* not run by a controller
+* has local storage
+* restricted by constraint rules
+* pod has **cluster-autoscaler.kubernetes.io/safe-to-evict** is set to False. The Node where this pod is running won't be seleted to downscale.
+* Restrictive **PodDisruptionBudget** also prevent a node from being deleted.
+* **kubernetes.io/scale-down-disabled** set to True
 
 
 .. image:: ./images/gcp_k8e_workload/best_practice_autoscaling.png
