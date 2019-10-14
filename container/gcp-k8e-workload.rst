@@ -393,3 +393,489 @@ Deployment Rollback
 >>>>>>>>>>>>>>>>>>>
 
 .. image:: ./images/gcp_k8e_workload/deployment_rollback.png
+
+
+Deployemt Three lifecycle states
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* progressing state
+* complete state
+* failed state
+
+
+Pausing a deployment
+>>>>>>>>>>>>>>>>>>>>
+
+New updates won't be applied to the deployment where it's paused.
+
+.. code-block:: bash
+
+  kubectl rollout pause deployment [DEPLOYMENT_NAME]
+  
+
+Pausing a deployment
+>>>>>>>>>>>>>>>>>>>>
+
+All updates blocked by `pausing` will be applied as a single revision.
+
+.. code-block:: bash
+
+  kubectl rollout resume deployment [DEPLOYMENT_NAME]
+  
+
+Checking a deployment status
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl rollout status deployment [DEPLOYMENT_NAME]
+  
+
+Delete a deployment
+>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl rollout delete deployment [DEPLOYMENT_NAME]
+
+
+Practicing Kubernete Deployment
+-------------------------------
+
+preparation
+>>>>>>>>>>>
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+
+
+bring up cluster
+>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  gcloud container clusters create $my_cluster --num-nodes 3  --enable-ip-alias --zone $my_zone
+
+
+get access to cluster for kubectl
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+  
+
+prepare sample code
+>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+  cd ~/training-data-analyst/courses/ak8s/06_Deployments/
+  
+  # check deployment YAML file
+  $ cat nginx-deployment.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: nginx-deployment
+    labels:
+      app: nginx
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        app: nginx
+    template:
+      metadata:
+        labels:
+          app: nginx
+      spec:
+        containers:
+        - name: nginx
+          image: nginx:1.7.9
+          ports:
+          - containerPort: 80
+
+
+create deployment
+>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ kubectl apply -f ./nginx-deployment.yaml
+
+  $ kubectl get deployments
+  NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+  nginx-deployment   3/3     3            3           56s
+
+  $ kubectl get pods
+  NAME                                READY   STATUS    RESTARTS   AGE
+  nginx-deployment-76bf4969df-f2mk2   1/1     Running   0          62s
+  nginx-deployment-76bf4969df-njjnz   1/1     Running   0          62s
+  nginx-deployment-76bf4969df-rmfqd   1/1     Running   0          62s
+
+
+scale down / up manually
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl scale --replicas=2 deployment nginx-deployment
+  kubectl scale --replicas=3 deployment nginx-deployment
+
+
+Trigger a deployment rollout
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+A deployment's rollout is triggered if and only if
+
+  * the deployment's Pod template (that is, .spec.template) is changed
+  * for example, if the labels or container images of the template are updated.
+
+Other updates, such as scaling the deployment, do NOT trigger a rollout.
+
+
+.. code-block:: bash
+
+  # update the version of nginx in the deployment
+  kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.9.1 --record
+
+  # check rollout status
+  $ kubectl rollout status deployment.v1.apps/nginx-deployment
+  deployment "nginx-deployment" successfully rolled out
+
+  # check rollout history
+  $ kubectl rollout history deployment nginx-deployment
+  deployment.extensions/nginx-deployment 
+  REVISION  CHANGE-CAUSE
+  1         <none>
+  2         kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.9.1 --record=true
+
+
+deployment rollback
+>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ kubectl rollout undo deployments nginx-deployment
+  deployment.extensions/nginx-deployment rolled back
+
+  $ kubectl rollout history deployment nginx-deployment
+  deployment.extensions/nginx-deployment 
+  REVISION  CHANGE-CAUSE
+  2         kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.9.1 --record=true
+  3         <none>
+
+  # View the details of the latest deployment revision 
+  $ kubectl rollout history deployment/nginx-deployment --revision=3
+  deployment.extensions/nginx-deployment with revision #3
+  Pod Template:
+    Labels:       app=nginx
+          pod-template-hash=76bf4969df
+    Containers:
+     nginx:
+      Image:      nginx:1.7.9
+      Port:       80/TCP
+      Host Port:  0/TCP
+      Environment:        <none>
+      Mounts:     <none>
+    Volumes:      <none>
+
+
+Define Service
+>>>>>>>>>>>>>>
+
+ClusterIP, NodePort or LoadBalancer types
+
+
+.. code-block:: bash
+
+  $ cat service-nginx.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: nginx
+  spec:
+    type: LoadBalancer
+    selector:
+      app: nginx
+    ports:
+    - protocol: TCP
+      port: 60000
+      targetPort: 80
+
+  $ kubectl apply -f ./service-nginx.yaml
+
+  $ kubectl get service
+  NAME         TYPE           CLUSTER-IP   EXTERNAL-IP   PORT(S)           AGE
+  kubernetes   ClusterIP      10.12.0.1    <none>        443/TCP           19m
+  nginx        LoadBalancer   10.12.15.2   <pending>     60000:32516/TCP   16s
+
+  $ kubectl get service nginx
+  NAME    TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)           AGE
+  nginx   LoadBalancer   10.12.15.2   34.69.205.216   60000:32516/TCP   84s
+
+  # open with http://[EXTERNAL_IP]:60000/
+  
+  
+Canary deployment
+>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ cat nginx-canary.yaml 
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: nginx-canary
+    labels:
+      app: nginx
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: nginx
+    template:
+      metadata:
+        labels:
+          app: nginx
+          track: canary
+          Version: 1.9.1
+      spec:
+        containers:
+        - name: nginx
+          image: nginx:1.9.1
+          ports:
+          - containerPort: 80
+
+
+  $ kubectl apply -f nginx-canary.yaml
+
+  $ kubectl get deployments
+  NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+  nginx-canary       1/1     1            1           18s
+  nginx-deployment   2/2     2            2           21m
+
+  # Switch back to the Cloud Shell and scale down the primary deployment to 0 replicas
+  $ kubectl scale --replicas=0 deployment nginx-deployment
+
+  $ kubectl get deployments
+  NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+  nginx-canary       1/1     1            1           70s
+  nginx-deployment   0/0     0            0           21m
+
+
+**Note: Session affinity**
+
+  The Service configuration used in the lab does not ensure that all requests from a single client will always connect to the same Pod. Each request is treated separately and can connect to either the normal nginx deployment or to the nginx-canary deployment. This potential to switch between different versions may cause problems if there are significant changes in functionality in the canary release. To prevent this you can set the sessionAffinity field to ClientIP in the specification of the service if you need a client's first request to determine which Pod will be used for all subsequent connections.
+
+.. code-block:: bash
+
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: nginx
+  spec:
+    type: LoadBalancer
+    sessionAffinity: ClientIP
+    selector:
+      app: nginx
+    ports:
+    - protocol: TCP
+      port: 60000
+      targetPort: 80
+ 
+
+
+
+Job and Cronjob
+---------------
+
+Job
+>>>
+
+* Job is a Kubernete's object
+* In simplest form, job creats a pod and track the task completion within the pod.
+* when the task is completed, job will terminate the pod and then report that the job is completed successfully.
+* jobs manages a task up to its completion rather than an open-ended desired state.
+
+
+Two ways to define a job
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Non-parallel job
+* Parallel job
+
+
+Non-parallel job
+>>>>>>>>>>>>>>>>
+
+* create only one pod at a time
+* completed:
+  
+  * when pod is terminated successfully
+  * OR a completion counter is defined.
+  * OR the required number of completions is reachted.
+
+.. image:: ./images/gcp_k8e_workload/non_parallel_job.png
+
+
+* **restartPolicy**
+
+  * Never: pod will be re-launched
+  * OnFailure: pod will be remained, only container will be restarted.
+  
+* **backoffLimit** 
+
+  * specifies the number of retries before a job is considered to have failed entirely
+  * failed pods are re-created with an exponetially increasing delay ( 10s, 20s, 40sec ... 6m )
+
+* **activeDeadlineSeconds:**
+
+  * activeDeadline Seconds has precedence over backoffLimit
+
+Parallel job
+>>>>>>>>>>>>
+
+* creates multiple pods that work on the same task at the same time
+* can be specified by setting the spec.parallelism value a job greater than one.
+* two types
+
+  * a fixed task completion count ( restarting pods until the completions count is reached )
+  * processing a work queue
+  
+* completed:
+  
+  * when the number of pods that had terminated successfully reaches the completion count.
+    
+
+.. image:: ./images/gcp_k8e_workload/parallel_job_fixed_completion.png
+
+.. image:: ./images/gcp_k8e_workload/parallel_job_work_queue.png
+
+
+Inspect a job
+>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl describe job [JOB_NAME]
+  
+  kubectl get pod -L [job-name=my-app-job]
+  
+
+Scale a job
+>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl scale job [JOB_NAME} --replicas [VALUE]
+  
+
+Delete a job
+>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl delete -f [JOB_FILE]
+  kubectl delete job [JOB_NAME]
+  
+  # retaining job pods
+  kubectl delete job [JOB_NAME] --cascade false
+  
+  
+Cronjobs
+>>>>>>>>
+
+* **kind:** CronJob
+* **schedule:** "*/1 * * * *"
+* what if job is not started at the scheduled time?
+
+  * by default, CronJob looks at how many times the job has failed to run since it was last scheduled.
+  *  If that failure count exceeds 100 and an error is logged, the the job is not scheduled.
+
+* **startingDeadlineSeconds:**
+* **concurrencyPolicy:**
+* **suspend:**
+
+  * suspended executions are counted as missed jobs
+  
+* **successfulJobHistoryLimit:**
+* **failedJobHistoryLimit:**
+
+
+.. image:: ./images/gcp_k8e_workload/manage_cronjob.png
+
+
+Cluster Scaling
+---------------
+
+* by manually changing the number of nodes and node pools
+* by configuring additional node pools
+
+what is Node Pool
+>>>>>>>>>>>>>>>>>
+
+a node pool is a subset of node instances within a cluster
+ 
+ 
+Reducing node
+>>>>>>>>>>>>>
+
+This process doesn't differentiate between Node running pods and Node running no pods.
+Therefore, pods in being removed Node will be terminated gracefully.
+
+
+How to resize cluster
+>>>>>>>>>>>>>>>>>>>>>
+
+* through GCP console
+* through gcloud 
+
+.. code-block:: bash
+
+  gcloud container clusters resize [CLUSTER_NAME] --node-pool [NODE_POOL_NAME] --size 6
+  
+  
+ Downscaling
+ >>>>>>>>>>>
+ 
+ Scale down a cluster with autoscaling happens only if
+ 
+ * There can be no scale-up events pending.
+ * can the node be deleted safely?
+ 
+ Pod conditions that prevent node deletion
+ 
+ * not run by a controller
+ * has local storage
+ * restricted by constraint rules
+ * pod has **cluster-autoscaler.kubernetes.io/safe-to-evict** is set to False. The Node where this pod is running won't be seleted to downscale.
+ * Restrictive **PodDisruptionBudget** also prevent a node from being deleted.
+ * **kubernetes.io/scale-down-disabled** set to True
+
+
+.. image:: ./images/gcp_k8e_workload/best_practice_autoscaling.png
+
+
+Node pools
+>>>>>>>>>>
+
+* node pool can be 0, but clsuter size can't be 0
+* max = 1000 nodes x 30 pods
+* increase quota limits to avoid disruption
+
+
+.. image:: ./images/gcp_k8e_workload/gcloud_cmd_for_autoscaling.png
+
+
+
+Controlling pod placement
+-------------------------
+
+
+Installing software info cluster via 
