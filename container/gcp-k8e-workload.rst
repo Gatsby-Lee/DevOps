@@ -298,7 +298,7 @@ How to inspect Deployment
 How to print/output Deployment config in a YAML format
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-.. code-blcok:: bash
+.. code-block:: bash
 
   kubectl get deployment [DEPLOYMENT_NAME] -o yaml > this.yaml
   
