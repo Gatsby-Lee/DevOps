@@ -741,6 +741,11 @@ Non-parallel job
 Parallel job
 >>>>>>>>>>>>
 
+* Questions
+
+  * With a Kubernetes Job configured with a parallelism value of 3 and no completion count what happens to the status of the Job when one of the Pods successfully terminates?
+
+
 * creates multiple pods that work on the same task at the same time
 * can be specified by setting the spec.parallelism value a job greater than one.
 * two types
