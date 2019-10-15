@@ -879,5 +879,108 @@ Node pools
 Controlling pod placement
 -------------------------
 
+* When specifying a pod, optionally required RAM and CPU can be specified.
+* **nodeSelector** can be set in **kind:Pod** object spec.
+* If Node label is changed, the running pod won't be affected. Node selector is only used during pod scheduling.
 
-Installing software info cluster via 
+
+Node Affinity and anti-affinity
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Like **nodeSelectors**, **nodeAffinity** also allow you to constrain which nodes your pod can be scheduled on based on labels. ( nodeAffinity is more expressive than nodeSelectors )
+* it's possible to define affinity and anti-affinity preferences that won't prevent a pod from being launched if the preferences aren't met. ( Unlike nodeSelectors ) - Soft preference + Hard requirement
+* denoted by
+
+  * requiredDuringSchedulingIgnoredDuringExecution: hare requirement similar to nodeSelectors (must be met before scheduling)
+  * preferredDuringSchedulingIgnoredDuringExecution
+
+* Node affinity attracts pods
+* Node anti-affinity refels pods
+
+.. image:: ./images/gcp_k8e_workload/affinity_antiaffinity_rule_required.png
+
+.. image:: ./images/gcp_k8e_workload/affinity_antiaffinity_rule_preferrence.png
+
+
+Pod Affinity and anti-affinity
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Inter-pod affinity and anti-affinity features extend the node affinity concept to include rules based on pod labels that are already running on the node. And instead of on labels of a node themselves 
+
+topologyKey to specify topology domains such as node, zone, and region.
+
+The pod shown here has a pod anti-infinity rule with topologyKey set, so that it prefers not to be scheduled in the same zone that's already running one pod with label ke: and value of app: webserver.
+
+.. image:: ./images/gcp_k8e_workload/pod_affinity_anttiaffinity.png
+
+
+Pod Placement example
+>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8e_workload/pod_affinity_and_affinity_example1.png
+
+.. image:: ./images/gcp_k8e_workload/pod_affinity_and_affinity_example2.png
+
+
+Taints
+>>>>>>
+
+* Node selector, affinity and anti-affinity rules on **POD**
+* **Taints** on Node, these are applied to all **POD** in the cluster
+
+Multiple taints can be applied to a node. In below example, all running pods in the node will be evicted.
+
+.. image:: ./images/gcp_k8e_workload/taints.png
+
+
+tolerations
+>>>>>>>>>>>
+
+Three effect settings
+
+* **NoSchedule:** hard limit preventing scheduling pods unless there is pod toleration with the NoSchedule ettect that machtes.
+* **Preferred NoSchedule:** soft limit 
+
+.. image:: ./images/gcp_k8e_workload/tolerations.png
+
+
+
+Installing software info cluster via Helm
+-----------------------------------------
+
+How to get software
+>>>>>>>>>>>>>>>>>>>>
+
+* build it yourself and supply your own YAML
+* Use Helm to install software into your cluster
+* GCP Market Place to install both open-source and commercial software packages.
+
+What is Helm?
+>>>>>>>>>>>>>
+
+Open source package managment for Kubernetes
+
+
+What is Charts in Helm?
+>>>>>>>>>>>>>>>>>>>>>>>
+
+Managing the deployment of complex applications
+
+
+Helm Architecture
+>>>>>>>>>>>>>>>>>
+
+* helm command line
+
+  * allowing to develop new Helm charts
+  * allowing to manage chart repositories
+  
+* helm server (Tiler)
+
+  * running in kubernete cluster
+  * Tiller interacts with Kubernetes API to install, upgrade, query, remove kubernetes resources.
+  * storing objects that represent a Helm chart release
+  
+.. image:: ./images/gcp_k8e_workload/helm_charts.png
+
+  
