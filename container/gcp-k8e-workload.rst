@@ -695,6 +695,8 @@ Canary deployment
 Job and Cronjob
 ---------------
 
+In GKE, a Job is a controller object that represents a finite task.
+
 Job
 >>>
 
@@ -814,6 +816,272 @@ Cronjobs
 
 
 .. image:: ./images/gcp_k8e_workload/manage_cronjob.png
+
+
+Practice Deploying Jobs
+-----------------------
+
+Prepareation / Launch Kubernete cluster
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+  gcloud container clusters create $my_cluster --num-nodes 3  --enable-ip-alias --zone $my_zone
+
+
+Configure access to cluster for kubectl
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+
+
+Prepare sample code
+>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+  cd ~/training-data-analyst/courses/ak8s/07_Jobs_CronJobs
+  
+  $ cat example-job.yaml
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    # Unique key of the Job instance
+    name: example-job
+  spec:
+    template:
+      metadata:
+        name: example-job
+      spec:
+        containers:
+        - name: pi
+          image: perl
+          command: ["perl"]
+          args: ["-Mbignum=bpi", "-wle", "print bpi(2000)"]
+        # Do not restart containers after they exit
+        restartPolicy: Never
+
+
+Create Job with job spec
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ kubectl apply -f example-job.yaml
+
+
+Check Job status
+>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ kubectl get jobs
+  NAME          COMPLETIONS   DURATION   AGE
+  example-job   1/1           36s        4m28s
+
+  $ kubectl get pod -L job-name=example-job
+  NAME                READY   STATUS      RESTARTS   AGE   JOB-NAME=EXAMPLE-JOB
+  example-job-z664w   0/1     Completed   0          57s
+
+  $ kubectl describe job example-job
+  Name:           example-job
+  Namespace:      default
+  Selector:       controller-uid=15fbd3c0-ef60-11e9-9e59-42010a800062
+  Labels:         controller-uid=15fbd3c0-ef60-11e9-9e59-42010a800062
+                  job-name=example-job
+  Annotations:    kubectl.kubernetes.io/last-applied-configuration:
+                    {"apiVersion":"batch/v1","kind":"Job","metadata":{"annotations":{},"name":"example-job","namespace":"default"},"spec":{"template":{"me
+  tada...
+  Parallelism:    1
+  Completions:    1
+  Start Time:     Tue, 15 Oct 2019 08:25:57 -0700
+  Completed At:   Tue, 15 Oct 2019 08:26:33 -0700
+  Duration:       36s
+  Pods Statuses:  0 Running / 1 Succeeded / 0 Failed
+  Pod Template:
+    Labels:  controller-uid=15fbd3c0-ef60-11e9-9e59-42010a800062
+             job-name=example-job
+    Containers:
+     pi:
+      Image:      perl
+      Port:       <none>
+      Host Port:  <none>
+      Command:
+        perl
+      Args:
+        -Mbignum=bpi
+        -wle
+        print bpi(2000)
+      Environment:  <none>
+      Mounts:       <none>
+    Volumes:        <none>
+  Events:
+    Type    Reason            Age    From            Message
+    ----    ------            ----   ----            -------
+    Normal  SuccessfulCreate  2m48s  job-controller  Created pod: example-job-z664w
+
+Get Logs from pod
+>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  # kubectl logs [POD_NAME]
+  kubectl logs example-job-z664w
+
+
+
+Clean up / Delete the job
+>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl delete job example-job
+
+
+Create and run a CronJob
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+* **schedule**
+
+  * required
+  * Unix standard crontab format
+  * in UTC
+
+.. code-block:: bash
+
+  git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+  cd ~/training-data-analyst/courses/ak8s/07_Jobs_CronJobs
+  
+  $ cat example-cronjob.yaml
+  apiVersion: batch/v1beta1
+  kind: CronJob
+  metadata:
+    name: hello
+  spec:
+    schedule: "*/1 * * * *"
+    jobTemplate:
+      spec:
+        template:
+          spec:
+            containers:
+            - name: hello
+              image: busybox
+              args:
+              - /bin/sh
+              - -c
+              - date; echo "Hello, World!"
+            restartPolicy: OnFailure
+
+
+  $ kubectl apply -f example-cronjob.yaml
+
+
+Check CronJob Status
+>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ kubectl get pods
+  NAME                     READY   STATUS      RESTARTS   AGE
+  hello-1571153940-sttr7   0/1     Completed   0          3m5s
+  hello-1571154000-r72ls   0/1     Completed   0          2m5s
+  hello-1571154060-thk62   0/1     Completed   0          65s
+  hello-1571154120-nt2kv   0/1     Completed   0          5s
+  
+  $ kubectl get jobs
+  NAME               COMPLETIONS   DURATION   AGE
+  hello-1571154000   1/1           2s         2m19s
+  hello-1571154060   1/1           1s         79s
+  hello-1571154120   1/1           2s         19s
+
+  $ kubectl describe job hello
+  Name:           hello-1571153880
+  Namespace:      default
+  Selector:       controller-uid=c8b3d43d-ef61-11e9-9e59-42010a800062
+  Labels:         controller-uid=c8b3d43d-ef61-11e9-9e59-42010a800062
+                  job-name=hello-1571153880
+  Annotations:    <none>
+  Controlled By:  CronJob/hello
+  Parallelism:    1
+  Completions:    1
+  Start Time:     Tue, 15 Oct 2019 08:38:07 -0700
+  Completed At:   Tue, 15 Oct 2019 08:38:08 -0700
+  Duration:       1s
+  Pods Statuses:  0 Running / 1 Succeeded / 0 Failed
+  Pod Template:
+    Labels:  controller-uid=c8b3d43d-ef61-11e9-9e59-42010a800062
+             job-name=hello-1571153880
+    Containers:
+     hello:
+      Image:      busybox
+      Port:       <none>
+      Host Port:  <none>
+      Args:
+        /bin/sh
+        -c
+        date; echo "Hello, World!"
+      Environment:  <none>
+      Mounts:       <none>
+    Volumes:        <none>
+  Events:
+    Type    Reason            Age   From            Message
+    ----    ------            ----  ----            -------
+    Normal  SuccessfulCreate  66s   job-controller  Created pod: hello-1571153880-rg4x6
+  Name:           hello-1571153940
+  Namespace:      default
+  Selector:       controller-uid=ec8c2bf4-ef61-11e9-9e59-42010a800062
+  Labels:         controller-uid=ec8c2bf4-ef61-11e9-9e59-42010a800062
+                  job-name=hello-1571153940
+  Annotations:    <none>
+  Controlled By:  CronJob/hello
+  Parallelism:    1
+  Completions:    1
+  Start Time:     Tue, 15 Oct 2019 08:39:07 -0700
+  Completed At:   Tue, 15 Oct 2019 08:39:08 -0700
+  Duration:       1s
+  Pods Statuses:  0 Running / 1 Succeeded / 0 Failed
+  Pod Template:
+    Labels:  controller-uid=ec8c2bf4-ef61-11e9-9e59-42010a800062
+             job-name=hello-1571153940
+    Containers:
+     hello:
+      Image:      busybox
+      Port:       <none>
+      Host Port:  <none>
+      Args:
+        /bin/sh
+        -c
+        date; echo "Hello, World!"
+      Environment:  <none>
+      Mounts:       <none>
+    Volumes:        <none>
+  Events:
+    Type    Reason            Age   From            Message
+    ----    ------            ----  ----            -------
+    Normal  SuccessfulCreate  6s    job-controller  Created pod: hello-1571153940-sttr7
+
+
+Get Logs from pod
+>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  # kubectl logs [POD_NAME]
+  kubectl logs example-job-z664w
+
+
+Clean up / Delete the CronJob
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl delete cronjob hello
 
 
 Cluster Scaling
