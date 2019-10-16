@@ -17,9 +17,9 @@ Summary
 
 
 
-.. image:: ./images/gcp_k8e_workload/kubectl_cmd.png
+.. image:: ./images/gcp_k8s_workload/kubectl_cmd.png
 
-.. image:: ./images/gcp_k8e_workload/kubectl_api.png
+.. image:: ./images/gcp_k8s_workload/kubectl_api.png
 
 
 kubctl config
@@ -30,14 +30,14 @@ kubctl config
 
   * target cluster name
   * credentials for the cluster
-  
+
 * to see current config,
 
 .. code-block:: bash
 
   kubectl config view
-  
-  
+
+
 retrieve credentials for cluster
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -46,7 +46,7 @@ retrieve credentials for cluster
   gcloud containers clusters \
   get-credentials [cluster_name] \
   --zone [ZONE_NAME]
-  
+
 
 
 Introspection
@@ -97,7 +97,7 @@ Create cluster
 
   # ref: https://cloud.google.com/sdk/gcloud/reference/container/clusters/create
   gcloud container clusters create $my_cluster --num-nodes 3 --zone $my_zone --enable-ip-alias
-  
+
 
 Increase Node in cluster
 >>>>>>>>>>>>>>>>>>>>>>>>
@@ -105,7 +105,7 @@ Increase Node in cluster
 .. code-block:: bash
 
   gcloud container clusters resize $my_cluster --zone $my_zone --size=4
-  
+
 
 Connect to GKE cluster
 >>>>>>>>>>>>>>>>>>>>>>
@@ -115,8 +115,8 @@ Connect to GKE cluster
   $ gcloud container clusters get-credentials $my_cluster --zone $my_zone
   Fetching cluster endpoint and auth data.
   kubeconfig entry generated for standard-cluster-1.
-  
-  
+
+
 Inspect GKE cluster
 >>>>>>>>>>>>>>>>>>>
 
@@ -132,7 +132,7 @@ Inspect GKE cluster
   kubectl config get-contexts
   # change active context
   kubectl config use-context gke_${GOOGLE_CLOUD_PROJECT}_us-central1-a_standard-cluster-1
-  
+
 
 Enable kubectl command hint
 >>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -140,7 +140,7 @@ Enable kubectl command hint
 .. code-block:: bash
 
   source <(kubectl completion bash)
-  
+
 
 Deploy Pods
 >>>>>>>>>>>>
@@ -148,11 +148,11 @@ Deploy Pods
 .. code-block:: bash
 
   $ kubectl run nginx-1 --image nginx:latest
-  
+
   $ kubectl get pods
   NAME                      READY   STATUS    RESTARTS   AGE
   nginx-1-6866cfb98-ckpq8   1/1     Running   0          36s
-  
+
   $ kubectl describe pod nginx-1-6866cfb98-ckpq8
 
 
@@ -162,7 +162,7 @@ Copy file to container
 .. code-block:: bash
 
   kubectl cp ~/test.html $my_nginx_pod:/usr/share/nginx/html/test.html
-  
+
 
 Expose Pod for testing
 >>>>>>>>>>>>>>>>>>>>>>
@@ -176,7 +176,7 @@ Expose Pod for testing
   NAME                      TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
   kubernetes                ClusterIP      10.12.0.1      <none>        443/TCP        21m
   nginx-1-6866cfb98-ckpq8   LoadBalancer   10.12.10.222   <pending>     80:31652/TCP   9s
-  
+
 
 Deploy Pods with config
 >>>>>>>>>>>>>>>>>>>>>>>
@@ -187,7 +187,7 @@ Deploy Pods with config
     $ cd ~/training-data-analyst/courses/ak8s/04_GKE_Shell/
 
     # sample config
-    $ cat new-nginx-pod.yaml 
+    $ cat new-nginx-pod.yaml
     apiVersion: v1
     kind: Pod
     metadata:
@@ -200,7 +200,7 @@ Deploy Pods with config
         image: nginx
         ports:
         - containerPort: 80
-        
+
     # deploy pod
     $ kubectl apply -f ./new-nginx-pod.yaml
 
@@ -242,7 +242,7 @@ View logging
 
   # monitor logging
   $ kubectl port-forward new-nginx 10081:80
-  
+
 
 
 Deployments
@@ -250,7 +250,7 @@ Deployments
 
 Deployments defines/describe a desired of state of pods
 
-.. image:: ./images/gcp_k8e_workload/deployment_twoparts_process.png
+.. image:: ./images/gcp_k8s_workload/deployment_twoparts_process.png
 
 Once deployment config YAML is submitted Kubernetes master, Kubernetes creates **deployment controller**. Deployment Controller is
 responsible for converting the desired state(config) to reality and keeping the desired state over time.
@@ -259,7 +259,7 @@ responsible for converting the desired state(config) to reality and keeping the 
 Deployment Usage
 >>>>>>>>>>>>>>>>
 
-.. image:: ./images/gcp_k8e_workload/deployment_usage.png
+.. image:: ./images/gcp_k8s_workload/deployment_usage.png
 
 
 Three ways to create deployment
@@ -270,9 +270,9 @@ Three ways to create deployment
 .. code-block:: bash
 
   kubectl apply -f [DEPLOYMENT_FILE]
-  
-  
-* creates a deployment **imperatively**, using a kubectl run command 
+
+
+* creates a deployment **imperatively**, using a kubectl run command
 
 .. code-block:: bash
 
@@ -283,7 +283,7 @@ Three ways to create deployment
   --port 8080 \
   --generator deployment/app.v1 \
   --save-config
-  
+
 * using GCP Console
 
 
@@ -301,30 +301,30 @@ How to print/output Deployment config in a YAML format
 .. code-block:: bash
 
   kubectl get deployment [DEPLOYMENT_NAME] -o yaml > this.yaml
-  
-  
+
+
 How to get more details about Deployment
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 .. code-block:: bash
 
   kubectl describe deployment [DEPLOYMENT_NAME]
-  
+
 
 Scaling deployments
 >>>>>>>>>>>>>>>>>>>
 
-.. image:: ./images/gcp_k8e_workload/service_loadbalancing.png
+.. image:: ./images/gcp_k8s_workload/service_loadbalancing.png
 
 
 .. code-block:: bash
 
   # manual-scaling a deployment
   kubectl scale deployemnt [DEPLOYMENT_NAME] --replicas=5
-  
+
   # autos-caling a deployment
   kubectl autoscale deployemnt [DEPLOYMENT_NAME] --min=5 --max=15 --cpu-percent=75
-  
+
 
 How to udpate Deployment
 >>>>>>>>>>>>>>>>>>>>>>>>
@@ -333,20 +333,20 @@ How to udpate Deployment
 
   * automatic update rollout will happen
   * only applicable to the changes in port specifications
-  
+
 
 * use updated deployment YAML ( kubectl apply -f [DEPLOYMENT_FILE] )
 
   * allowing to update other specification of a deployment, such as number of replicas
-  
+
 * use `kubectl set`
-  
+
   * allowing to change pod specifications for the deployment, such as images, resources, or selector values.
 
-* use `kubectl edit` 
+* use `kubectl edit`
 
   * once exit/saved, kubectl automatically applies the updated file.
-  
+
 * use GCP console
 
 
@@ -355,32 +355,32 @@ Deployment strategy - Rolling updates
 
 * **max unavailable:** specific number or percentage
 
-.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_unavailable.png
+.. image:: ./images/gcp_k8s_workload/deployment_rollout_max_unavailable.png
 
-.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_unavailable_percentage.png
+.. image:: ./images/gcp_k8s_workload/deployment_rollout_max_unavailable_percentage.png
 
 
 * **max surge:** specifying max number of pods that can be created concurrently in a new replica set
 
-.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_max_surge.png
+.. image:: ./images/gcp_k8s_workload/deployment_rollout_max_max_surge.png
 
-.. image:: ./images/gcp_k8e_workload/deployment_rollout_max_max_surge_percentage.png
+.. image:: ./images/gcp_k8s_workload/deployment_rollout_max_max_surge_percentage.png
 
 
 Deployment strategy - Blue/Green
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-.. image:: ./images/gcp_k8e_workload/deployment_blue_green.png
+.. image:: ./images/gcp_k8s_workload/deployment_blue_green.png
 
-.. image:: ./images/gcp_k8e_workload/deployment_apply_blue_green.png
+.. image:: ./images/gcp_k8s_workload/deployment_apply_blue_green.png
 
 
 Deployment strategy - Canary
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-.. image:: ./images/gcp_k8e_workload/deployment_canary.png
+.. image:: ./images/gcp_k8s_workload/deployment_canary.png
 
-.. image:: ./images/gcp_k8e_workload/deployment_apply_canary.png
+.. image:: ./images/gcp_k8s_workload/deployment_apply_canary.png
 
 
 Deployment strategy - Canary
@@ -392,7 +392,7 @@ Deployment strategy - Canary
 Deployment Rollback
 >>>>>>>>>>>>>>>>>>>
 
-.. image:: ./images/gcp_k8e_workload/deployment_rollback.png
+.. image:: ./images/gcp_k8s_workload/deployment_rollback.png
 
 
 Deployemt Three lifecycle states
@@ -411,7 +411,7 @@ New updates won't be applied to the deployment where it's paused.
 .. code-block:: bash
 
   kubectl rollout pause deployment [DEPLOYMENT_NAME]
-  
+
 
 Pausing a deployment
 >>>>>>>>>>>>>>>>>>>>
@@ -421,7 +421,7 @@ All updates blocked by `pausing` will be applied as a single revision.
 .. code-block:: bash
 
   kubectl rollout resume deployment [DEPLOYMENT_NAME]
-  
+
 
 Checking a deployment status
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -429,7 +429,7 @@ Checking a deployment status
 .. code-block:: bash
 
   kubectl rollout status deployment [DEPLOYMENT_NAME]
-  
+
 
 Delete a deployment
 >>>>>>>>>>>>>>>>>>>
@@ -466,7 +466,7 @@ get access to cluster for kubectl
 .. code-block:: bash
 
   gcloud container clusters get-credentials $my_cluster --zone $my_zone
-  
+
 
 prepare sample code
 >>>>>>>>>>>>>>>>>>>
@@ -475,7 +475,7 @@ prepare sample code
 
   git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
   cd ~/training-data-analyst/courses/ak8s/06_Deployments/
-  
+
   # check deployment YAML file
   $ cat nginx-deployment.yaml
   apiVersion: apps/v1
@@ -550,7 +550,7 @@ Other updates, such as scaling the deployment, do NOT trigger a rollout.
 
   # check rollout history
   $ kubectl rollout history deployment nginx-deployment
-  deployment.extensions/nginx-deployment 
+  deployment.extensions/nginx-deployment
   REVISION  CHANGE-CAUSE
   1         <none>
   2         kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.9.1 --record=true
@@ -565,12 +565,12 @@ deployment rollback
   deployment.extensions/nginx-deployment rolled back
 
   $ kubectl rollout history deployment nginx-deployment
-  deployment.extensions/nginx-deployment 
+  deployment.extensions/nginx-deployment
   REVISION  CHANGE-CAUSE
   2         kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.9.1 --record=true
   3         <none>
 
-  # View the details of the latest deployment revision 
+  # View the details of the latest deployment revision
   $ kubectl rollout history deployment/nginx-deployment --revision=3
   deployment.extensions/nginx-deployment with revision #3
   Pod Template:
@@ -620,14 +620,14 @@ ClusterIP, NodePort or LoadBalancer types
   nginx   LoadBalancer   10.12.15.2   34.69.205.216   60000:32516/TCP   84s
 
   # open with http://[EXTERNAL_IP]:60000/
-  
-  
+
+
 Canary deployment
 >>>>>>>>>>>>>>>>>
 
 .. code-block:: bash
 
-  $ cat nginx-canary.yaml 
+  $ cat nginx-canary.yaml
   apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -688,7 +688,7 @@ Canary deployment
     - protocol: TCP
       port: 60000
       targetPort: 80
- 
+
 
 
 
@@ -718,20 +718,20 @@ Non-parallel job
 
 * create only one pod at a time
 * completed:
-  
+
   * when pod is terminated successfully
   * OR a completion counter is defined.
   * OR the required number of completions is reachted.
 
-.. image:: ./images/gcp_k8e_workload/non_parallel_job.png
+.. image:: ./images/gcp_k8s_workload/non_parallel_job.png
 
 
 * **restartPolicy**
 
   * Never: pod will be re-launched
   * OnFailure: pod will be remained, only container will be restarted.
-  
-* **backoffLimit** 
+
+* **backoffLimit**
 
   * specifies the number of retries before a job is considered to have failed entirely
   * failed pods are re-created with an exponetially increasing delay ( 10s, 20s, 40sec ... 6m )
@@ -754,15 +754,15 @@ Parallel job
 
   * a fixed task completion count ( restarting pods until the completions count is reached )
   * processing a work queue
-  
+
 * completed:
-  
+
   * when the number of pods that had terminated successfully reaches the completion count.
-    
 
-.. image:: ./images/gcp_k8e_workload/parallel_job_fixed_completion.png
 
-.. image:: ./images/gcp_k8e_workload/parallel_job_work_queue.png
+.. image:: ./images/gcp_k8s_workload/parallel_job_fixed_completion.png
+
+.. image:: ./images/gcp_k8s_workload/parallel_job_work_queue.png
 
 
 Inspect a job
@@ -771,9 +771,9 @@ Inspect a job
 .. code-block:: bash
 
   kubectl describe job [JOB_NAME]
-  
+
   kubectl get pod -L [job-name=my-app-job]
-  
+
 
 Scale a job
 >>>>>>>>>>>
@@ -781,7 +781,7 @@ Scale a job
 .. code-block:: bash
 
   kubectl scale job [JOB_NAME} --replicas [VALUE]
-  
+
 
 Delete a job
 >>>>>>>>>>>>
@@ -790,11 +790,11 @@ Delete a job
 
   kubectl delete -f [JOB_FILE]
   kubectl delete job [JOB_NAME]
-  
+
   # retaining job pods
   kubectl delete job [JOB_NAME] --cascade false
-  
-  
+
+
 Cronjobs
 >>>>>>>>
 
@@ -810,12 +810,12 @@ Cronjobs
 * **suspend:**
 
   * suspended executions are counted as missed jobs
-  
+
 * **successfulJobHistoryLimit:**
 * **failedJobHistoryLimit:**
 
 
-.. image:: ./images/gcp_k8e_workload/manage_cronjob.png
+.. image:: ./images/gcp_k8s_workload/manage_cronjob.png
 
 
 Practice Deploying Jobs
@@ -847,7 +847,7 @@ Prepare sample code
 
   git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
   cd ~/training-data-analyst/courses/ak8s/07_Jobs_CronJobs
-  
+
   $ cat example-job.yaml
   apiVersion: batch/v1
   kind: Job
@@ -957,7 +957,7 @@ Create and run a CronJob
 
   git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
   cd ~/training-data-analyst/courses/ak8s/07_Jobs_CronJobs
-  
+
   $ cat example-cronjob.yaml
   apiVersion: batch/v1beta1
   kind: CronJob
@@ -993,7 +993,7 @@ Check CronJob Status
   hello-1571154000-r72ls   0/1     Completed   0          2m5s
   hello-1571154060-thk62   0/1     Completed   0          65s
   hello-1571154120-nt2kv   0/1     Completed   0          5s
-  
+
   $ kubectl get jobs
   NAME               COMPLETIONS   DURATION   AGE
   hello-1571154000   1/1           2s         2m19s
@@ -1096,8 +1096,8 @@ what is Node Pool
 >>>>>>>>>>>>>>>>>
 
 a node pool is a subset of node instances within a cluster
- 
- 
+
+
 Reducing node
 >>>>>>>>>>>>>
 
@@ -1109,23 +1109,23 @@ How to resize cluster
 >>>>>>>>>>>>>>>>>>>>>
 
 * through GCP console
-* through gcloud 
+* through gcloud
 
 .. code-block:: bash
 
   gcloud container clusters resize [CLUSTER_NAME] --node-pool [NODE_POOL_NAME] --size 6
-  
-  
+
+
 Downscaling
 >>>>>>>>>>>
- 
+
 Scale down a cluster with autoscaling happens only if
- 
+
 * There can be no scale-up events pending.
 * can the node be deleted safely?
- 
+
 Pod conditions that prevent node deletion
- 
+
 * not run by a controller
 * has local storage
 * restricted by constraint rules
@@ -1134,7 +1134,7 @@ Pod conditions that prevent node deletion
 * **kubernetes.io/scale-down-disabled** set to True
 
 
-.. image:: ./images/gcp_k8e_workload/best_practice_autoscaling.png
+.. image:: ./images/gcp_k8s_workload/best_practice_autoscaling.png
 
 
 Node pools
@@ -1145,7 +1145,7 @@ Node pools
 * increase quota limits to avoid disruption
 
 
-.. image:: ./images/gcp_k8e_workload/gcloud_cmd_for_autoscaling.png
+.. image:: ./images/gcp_k8s_workload/gcloud_cmd_for_autoscaling.png
 
 
 
@@ -1170,29 +1170,29 @@ Node Affinity and anti-affinity
 * Node affinity attracts pods
 * Node anti-affinity refels pods
 
-.. image:: ./images/gcp_k8e_workload/affinity_antiaffinity_rule_required.png
+.. image:: ./images/gcp_k8s_workload/affinity_antiaffinity_rule_required.png
 
-.. image:: ./images/gcp_k8e_workload/affinity_antiaffinity_rule_preferrence.png
+.. image:: ./images/gcp_k8s_workload/affinity_antiaffinity_rule_preferrence.png
 
 
 Pod Affinity and anti-affinity
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-Inter-pod affinity and anti-affinity features extend the node affinity concept to include rules based on pod labels that are already running on the node. And instead of on labels of a node themselves 
+Inter-pod affinity and anti-affinity features extend the node affinity concept to include rules based on pod labels that are already running on the node. And instead of on labels of a node themselves
 
 topologyKey to specify topology domains such as node, zone, and region.
 
 The pod shown here has a pod anti-infinity rule with topologyKey set, so that it prefers not to be scheduled in the same zone that's already running one pod with label ke: and value of app: webserver.
 
-.. image:: ./images/gcp_k8e_workload/pod_affinity_anttiaffinity.png
+.. image:: ./images/gcp_k8s_workload/pod_affinity_anttiaffinity.png
 
 
 Pod Placement example
 >>>>>>>>>>>>>>>>>>>>>
 
-.. image:: ./images/gcp_k8e_workload/pod_affinity_and_affinity_example1.png
+.. image:: ./images/gcp_k8s_workload/pod_affinity_and_affinity_example1.png
 
-.. image:: ./images/gcp_k8e_workload/pod_affinity_and_affinity_example2.png
+.. image:: ./images/gcp_k8s_workload/pod_affinity_and_affinity_example2.png
 
 
 Taints
@@ -1203,7 +1203,7 @@ Taints
 
 Multiple taints can be applied to a node. In below example, all running pods in the node will be evicted.
 
-.. image:: ./images/gcp_k8e_workload/taints.png
+.. image:: ./images/gcp_k8s_workload/taints.png
 
 
 tolerations
@@ -1212,9 +1212,9 @@ tolerations
 Three effect settings
 
 * **NoSchedule:** hard limit preventing scheduling pods unless there is pod toleration with the NoSchedule ettect that machtes.
-* **Preferred NoSchedule:** soft limit 
+* **Preferred NoSchedule:** soft limit
 
-.. image:: ./images/gcp_k8e_workload/tolerations.png
+.. image:: ./images/gcp_k8s_workload/tolerations.png
 
 
 
@@ -1247,13 +1247,13 @@ Helm Architecture
 
   * allowing to develop new Helm charts
   * allowing to manage chart repositories
-  
+
 * helm server (Tiler)
 
   * running in kubernete cluster
   * Tiller interacts with Kubernetes API to install, upgrade, query, remove kubernetes resources.
   * storing objects that represent a Helm chart release
-  
-.. image:: ./images/gcp_k8e_workload/helm_charts.png
 
-  
+.. image:: ./images/gcp_k8s_workload/helm_charts.png
+
+
