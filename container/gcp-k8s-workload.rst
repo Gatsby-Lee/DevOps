@@ -1148,7 +1148,6 @@ Node pools
 .. image:: ./images/gcp_k8s_workload/gcloud_cmd_for_autoscaling.png
 
 
-
 Controlling pod placement
 -------------------------
 
@@ -1217,6 +1216,390 @@ Three effect settings
 .. image:: ./images/gcp_k8s_workload/tolerations.png
 
 
+Pracetice Configuring Pod Autoscaling and NodePools
+---------------------------------------------------
+
+preparation
+>>>>>>>>>>>
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+
+
+Create cluster
+>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  gcloud container clusters create $my_cluster \
+   --num-nodes 2 --enable-ip-alias --zone $my_zone
+
+
+Configure access to cluster for kubectl
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+
+
+Prepare source code
+>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+    git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+    cd ~/training-data-analyst/courses/ak8s/11_Autoscaling/
+
+    $ cat web.yaml
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+    name: web
+    spec:
+    replicas: 1
+    selector:
+        matchLabels:
+        run: web
+    template:
+        metadata:
+        labels:
+            run: web
+        spec:
+        containers:
+        - image: gcr.io/google-samples/hello-app:1.0
+            name: web
+            ports:
+            - containerPort: 8080
+            protocol: TCP
+
+Create deployment with web.yaml manifest
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl create -f web.yaml --save-config
+
+  $ kubectl get deployments
+  NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+  web    1/1     1            1           55s
+
+  $ kubectl get pods
+  NAME                   READY   STATUS    RESTARTS   AGE
+  web-77656d79f8-h8rd4   1/1     Running   0          60s
+
+
+Create service
+>>>>>>>>>>>>>>
+
+Create a service resource of type NodePort on port 8080 for the web deployment.
+
+.. code-block:: bash
+
+  kubectl expose deployment web --target-port=8080 --type=NodePort
+
+  $ kubectl get services
+  NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)          AGE
+  kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP          31m
+  web          NodePort    10.12.5.14   <none>        8080:30211/TCP   7s
+
+  $ kubectl get services web
+  NAME   TYPE       CLUSTER-IP   EXTERNAL-IP   PORT(S)          AGE
+  web    NodePort   10.12.5.14   <none>        8080:30211/TCP   11s
+
+
+Configure autoscaling on the cluster
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+When you use kubectl autoscale, you specify a maximum and minimum number of replicas for your application,
+as well as a CPU utilization target.
+
+.. code-block:: bash
+
+  kubectl autoscale deployment web --max 4 --min 1 --cpu-percent 1
+
+
+Inspect the HorizontalPodAutoscaler object
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+The `kubectl autoscale` command you used in the previous task creates a **HorizontalPodAutoscaler** object
+that targets a specified resource, called the scale target, and scales it as needed.
+The autoscaler periodically adjusts the number of replicas of the scale target to match the average CPU utilization
+that you specify when creating the autoscaler.
+
+To get the list of HorizontalPodAutoscaler resources
+
+.. code-block:: bash
+
+    $ kubectl get hpa
+    NAME   REFERENCE        TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+    web    Deployment/web   1%/1%     1         4         1          55s
+
+    # To inspect the configuration of HorizontalPodAutoscaler in YAML form
+    $ kubectl describe horizontalpodautoscaler web
+    Name:                     web
+    Namespace:                default
+    Labels:                   <none>
+    Annotations:              autoscaling.alpha.kubernetes.io/conditions:
+                                [{"type":"AbleToScale","status":"True","lastTransitionTime":"2019-10-16T17:38:30Z","reason":"ScaleDownStabilized","message":"recent recomm...
+                            autoscaling.alpha.kubernetes.io/current-metrics:
+                                [{"type":"Resource","resource":{"name":"cpu","currentAverageUtilization":0,"currentAverageValue":"0"}}]
+    CreationTimestamp:        Wed, 16 Oct 2019 10:38:15 -0700
+    Reference:                Deployment/web
+    Target CPU utilization:   1%
+    Current CPU utilization:  0%
+    Min replicas:             1
+    Max replicas:             4
+    Deployment pods:          1 current / 1 desired
+    Events:                   <none>
+
+    # To view the configuration of HorizontalPodAutoscaler in YAML
+    $ kubectl get horizontalpodautoscaler web -o yaml
+    apiVersion: autoscaling/v1
+    kind: HorizontalPodAutoscaler
+    metadata:
+    annotations:
+        autoscaling.alpha.kubernetes.io/conditions: '[{"type":"AbleToScale","status":"True","lastTransitionTime":"2019-10-16T17:38:30Z","reason":"ScaleDownStabilized","message":"recent
+        recommendations were higher than current one, applying the highest recent recommendation"},{"type":"ScalingActive","status":"True","lastTransitionTime":"2019-10-16T17:38:30Z","reason":"ValidMetricFound","message":"the
+        HPA was able to successfully calculate a replica count from cpu resource utilization
+        (percentage of request)"},{"type":"ScalingLimited","status":"False","lastTransitionTime":"2019-10-16T17:38:30Z","reason":"DesiredWithinRange","message":"the
+        desired count is within the acceptable range"}]'
+        autoscaling.alpha.kubernetes.io/current-metrics: '[{"type":"Resource","resource":{"name":"cpu","currentAverageUtilization":0,"currentAverageValue":"0"}}]'
+    creationTimestamp: "2019-10-16T17:38:15Z"
+    name: web
+    namespace: default
+    resourceVersion: "8219"
+    selfLink: /apis/autoscaling/v1/namespaces/default/horizontalpodautoscalers/web
+    uid: bbd219cf-f03b-11e9-be2d-42010a8000ca
+    spec:
+    maxReplicas: 4
+    minReplicas: 1
+    scaleTargetRef:
+        apiVersion: extensions/v1beta1
+        kind: Deployment
+        name: web
+    targetCPUUtilizationPercentage: 1
+    status:
+    currentCPUUtilizationPercentage: 0
+    currentReplicas: 1
+    desiredReplicas: 1
+
+
+Test the autoscale configuration
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+    # Test code generating load
+    $ cat loadgen.yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+    name: loadgen
+    spec:
+    replicas: 4
+    selector:
+        matchLabels:
+        app: loadgen
+    template:
+        metadata:
+        labels:
+            app: loadgen
+        spec:
+        containers:
+        - name: loadgen
+            image: k8s.gcr.io/busybox
+            args:
+            - /bin/sh
+            - -c
+            - while true; do wget -q -O- http://web:8080; done
+
+
+    # create deployment of loadgen
+    kubectl apply -f loadgen.yaml
+
+
+Check autoscale status
+>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ kubectl get deployment
+  NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+  loadgen   4/4     4            4           84s
+  web       3/4     4            3           13m
+
+  $ kubectl get hpa
+  NAME   REFERENCE        TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+  web    Deployment/web   83%/1%    1         4         4          7m37s
+
+
+Stop loadgen by reducing replica to 0
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl scale deployment loadgen --replicas 0
+
+
+Create Node Pool
+>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ gcloud container node-pools create "temp-pool-1" \
+  --cluster=$my_cluster --zone=$my_zone \
+  --num-nodes "2" --node-labels=temp=true --preemptible
+
+  # check nodes
+  $ kubectl get nodes
+  NAME                                                STATUS   ROLES    AGE   VERSION
+  gke-standard-cluster-1-default-pool-80f148b0-1dch   Ready    <none>   11m   v1.13.10-gke.0
+  gke-standard-cluster-1-default-pool-80f148b0-fpg4   Ready    <none>   11m   v1.13.10-gke.0
+  gke-standard-cluster-1-temp-pool-1-e363dc46-gjm9    Ready    <none>   31s   v1.13.10-gke.0
+  gke-standard-cluster-1-temp-pool-1-e363dc46-xp3d    Ready    <none>   25s   v1.13.10-gke.0
+
+  # list nodes with label temp=true
+  kubectl get nodes -l temp=true
+  NAME                                               STATUS   ROLES    AGE    VERSION
+  gke-standard-cluster-1-temp-pool-1-e363dc46-gjm9   Ready    <none>   100s   v1.13.10-gke.0
+  gke-standard-cluster-1-temp-pool-1-e363dc46-xp3d   Ready    <none>   94s    v1.13.10-gke.0
+
+
+Control scheduling with taints and tolerations
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+To prevent the scheduler from running a Pod on the temporary nodes, you add a taint to each of the nodes in the temp pool.
+Taints are implemented as a key-value pair with an effect (such as NoExecute) that determines whether Pods can run on a certain node.
+**Only nodes that are configured to tolerate the key-value of the taint are scheduled to run on these nodes.**
+
+
+.. code-block:: bash
+
+  # To add a taint to each of the newly created nodes
+  # temp=true label cab be used to apply this change across all the new nodes simultaneously.
+  $ kubectl taint node -l temp=true nodetype=preemptible:NoExecute
+  node/gke-standard-cluster-1-temp-pool-1-59855324-2j5x tainted
+  node/gke-standard-cluster-1-temp-pool-1-59855324-c901 tainted
+
+
+Update `web.yaml` to add following key in the template
+
+.. code-block:: bash
+
+  tolerations:
+  - key: "nodetype"
+    operator: Equal
+    value: "preemptible"
+
+
+To force the web deployment to use the new node-pool add a nodeSelector key in the template's spec section.
+
+Note: GKE adds a custom label to each node called cloud.google.com/gke-nodepool that contains the name of the node-pool
+that the node belongs to. This key can also be used as part of a nodeSelector to ensure Pods are only deployed to suitable nodes.
+
+.. code-block:: bash
+
+    nodeSelector:
+      temp: "true"
+
+
+`web.yaml` should be like this
+
+.. code-block:: bash
+
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: web
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        run: web
+    template:
+      metadata:
+        labels:
+          run: web
+      spec:
+        tolerations:
+        - key: "nodetype"
+          operator: Equal
+          value: "preemptible"
+        nodeSelector:
+          temp: "true"
+        containers:
+        - image: gcr.io/google-samples/hello-app:1.0
+          name: web
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+
+
+Apply updted web deployment
+
+.. code-block:: bash
+
+  kubectl apply -f web.yaml
+
+
+Check pod status
+>>>>>>>>>>>>>>>>
+
+The output confirms that the Pods will tolerate the taint value on the new preemptible nodes,
+and thus that they can be scheduled to execute on those nodes.
+
+.. code-block:: bash
+
+  $ kubectl get pods
+  NAME                  READY   STATUS    RESTARTS   AGE
+  web-ff9bc59cc-28492   1/1     Running   0          22s
+
+  # To confirm the change, inspect the running web Pod(s) using the following command
+  # A Tolerations section with `nodetype=preemptible` in the list should appear near the bottom of the (truncated) output.
+  $ kubectl describe pods -l run=web
+
+
+Generate Loads to test
+>>>>>>>>>>>>>>>>>>>>>>
+
+You could scale just the web application directly but using the loadgen app will allow you to see
+how the different taint, toleration and nodeSelector settings that apply to the web
+and loadgen applications affect which nodes they are scheduled on.
+
+.. code-block:: bash
+
+  kubectl scale deployment loadgen --replicas 4
+
+
+Check where pods are created
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+This shows that the loadgen app is running only on default-pool nodes
+while the web app is running only the preemptible nodes in temp-pool-1.
+
+The taint setting prevents Pods from running on the preemptible nodes
+so the loadgen application only runs on the default pool.
+The toleration setting allows the web application to run on the preemptible nodes
+and the nodeSelector forces the web application Pods to run on those nodes.
+
+.. code-block:: bash
+
+  # Get the list of Pods using thewide output format to show the nodes running the Pods
+  $ kubectl get pods -o wide
+  NAME                       READY   STATUS    RESTARTS   AGE     IP          NODE                                                NOMINATED NODE   READINESS GATES
+  loadgen-5b8f7f4f79-9thjb   1/1     Running   0          2m22s   10.8.1.10   gke-standard-cluster-1-default-pool-80f148b0-fpg4   <none>           <none>
+  loadgen-5b8f7f4f79-c9sxc   1/1     Running   0          2m22s   10.8.0.13   gke-standard-cluster-1-default-pool-80f148b0-1dch   <none>           <none>
+  loadgen-5b8f7f4f79-k2rlf   1/1     Running   0          2m22s   10.8.1.11   gke-standard-cluster-1-default-pool-80f148b0-fpg4   <none>           <none>
+  loadgen-5b8f7f4f79-ndbhh   1/1     Running   0          2m22s   10.8.0.12   gke-standard-cluster-1-default-pool-80f148b0-1dch   <none>           <none>
+  web-ff9bc59cc-28492        1/1     Running   0          4m51s   10.8.3.2    gke-standard-cluster-1-temp-pool-1-e363dc46-xp3d    <none>           <none>
+  web-ff9bc59cc-bbs4l        1/1     Running   0          116s    10.8.2.3    gke-standard-cluster-1-temp-pool-1-e363dc46-gjm9    <none>           <none>
+  web-ff9bc59cc-db4p4        1/1     Running   0          116s    10.8.2.2    gke-standard-cluster-1-temp-pool-1-e363dc46-gjm9    <none>           <none>
+  web-ff9bc59cc-t9cb8        1/1     Running   0          116s    10.8.3.3    gke-standard-cluster-1-temp-pool-1-e363dc46-xp3d    <none>           <none>
+
 
 Installing software info cluster via Helm
 -----------------------------------------
@@ -1257,3 +1640,158 @@ Helm Architecture
 .. image:: ./images/gcp_k8s_workload/helm_charts.png
 
 
+Pod Networking
+--------------
+
+Kubernetes networking model relies heavily on IP addresses.
+
+Services, pods, containers, and nodes communicate using IP addresses and ports.
+
+.. image:: ./images/gcp_k8s_workload/pod_networking.png
+
+
+What is pod?
+>>>>>>>>>>>>>
+
+* Pod is a group of containers with shared storage and networking.
+* This is based on the IP per Pod model of Kubernetes.
+
+Networking in Pod
+>>>>>>>>>>>>>>>>>
+
+* IP per Pod model of Kubernetes.
+* With this model, each pod is assigned a single IP address,
+and the containers within a pod share the same network namespace, including that IP address.
+* Each pod has unique IP address
+
+.. image:: ./images/gcp_k8s_workload/pod_to_pod_networking.png
+
+
+Where does Node get IP?
+>>>>>>>>>>>>>>>>>>>>>>>
+
+Nodes get Pod IP addresses from address ranges assigned to VPC
+
+
+Addressing Pods
+>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/addressing_pods.png
+
+
+Communicating outside GCP
+>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/communicating_outside_gcp.png
+
+
+
+services
+--------
+
+Pod IP addresses are ephemeral.
+Therefore, you need a more dependable way to locate the applications running in your cluster.
+
+A Kubernetes service is an object that creates a dynamic collection of IP addresses
+called end points that belong to pods matching the services labeled selector.
+
+.. image:: ./images/gcp_k8s_workload/service_create_endpoint.png
+
+.. image:: ./images/gcp_k8s_workload/service_virtualip.png
+
+
+Finding Services ( Service Discovery )
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Environment Variables
+* Kubernetes DNS ( recommended )
+* Istio
+
+Finding Services ( Service Discovery ) - Kubernetes DNS
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* DNS changes can be visible to pods during their lifetimes.
+* Kubernetes DNS server watches the API server for the creation of new services.
+* When a new service has created, kube DNS automatically creates a set of DNS records for it.
+* A pod in any other name space can resolve the IP address of the service,
+using the fully qualified domain name **lab.demo.service.cluster.local** or just the part of the name that includes the namespace, **lab.demo**.
+
+.. image:: ./images/gcp_k8s_workload/service_discovery_through_kube_dns.png
+
+.. image:: ./images/gcp_k8s_workload/service_a_record_assigned.png
+
+
+Service Types and Load Balancers
+---------------------------------
+
+( Recommended, not required )
+We should always create a service before creating any workloads that need to access that service.
+If you create a service before its corresponding backend workloads,
+such as deployments or stateful sets, the pods that make up that service get a nice bonus.
+They get the host name and IP address of the service in an environment variable.
+
+
+Service Types
+>>>>>>>>>>>>>
+
+* cluster IP
+* Nort port
+* load balancer
+
+
+Cluster IP Service ( Default type )
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* static IP
+* operating as a traffie distributor **within cluster**
+* not accessible by resource outside of cluster
+* useful for internal communication in cluster
+
+.. image:: ./images/gcp_k8s_workload/service_clusterip_manifest.png
+
+.. image:: ./images/gcp_k8s_workload/service_clusterip_howworks.png
+
+Node Port Service
+>>>>>>>>>>>>>>>>>
+
+* built on top of cluster
+* cluster IP service is automatically created when Node Port Server is created.
+* it can be reached outside of the cluster using the IP address of any node
+and the corresponding node port number.
+* NodePort Service can be useful to expose a service through an external load balancer
+( my own load balancer )
+* I have to deal with node managment to make sure there are no port collisions.
+* In order to setup cluster IP service, a specific port is exposed on every node.
+NodePort is automatically located from 30,000 to 32,767.
+* User can manually specify NodePort which must be between 30,000 and 32,767 in Service manifest
+
+.. image:: ./images/gcp_k8s_workload/service_nodeport.png
+
+
+Load Balancer Service
+>>>>>>>>>>>>>>>>>>>>>
+
+* built on top of Cluster IP and accessble to resources outside cluster.
+* Using GCP Network LoadBalancer ( for inbound access )
+* Steps
+
+  * client traffic directly goes through LoadBalancer to nodes.
+  * LoadBalancer randomly choose a Node in cluster and forwards traffic to it.
+  * Kube Proxy selects a pod at random to handle the incoming traffic. ( to use evenly )
+
+    * can cause double-hop(causing network latency)
+    * can cause external network traffic
+    * source IP is preserved.
+
+.. image:: ./images/gcp_k8s_workload/service_loadbalancer_doublehop.png
+
+
+To prevent double-hop ( forcing to local ), use externalTrafficPolicy to Local
+
+.. image:: ./images/gcp_k8s_workload/service_loadbalancer_local.png
+
+
+Service types summery
+>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/service_types_summary.png
