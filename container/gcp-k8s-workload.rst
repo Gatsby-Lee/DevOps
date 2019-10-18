@@ -1795,3 +1795,142 @@ Service types summery
 >>>>>>>>>>>>>>>>>>>>>
 
 .. image:: ./images/gcp_k8s_workload/service_types_summary.png
+
+
+
+Ingress Resource
+----------------
+
+* not service
+* It's a collection of rules that direct external inbound connections to a set of services within the cluster
+* exposed with a single external IP
+* On GKE, Ingress Resource is implemented using HTTP/HTTPS LoadBalancer to route traffic to cluster.
+
+.. image:: ./images/gcp_k8s_workload/ingress_resource.png
+
+.. image:: ./images/gcp_k8s_workload/gke_ingress_resource.png
+
+
+Ingress manifest example1
+>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/ingress_resource_manifest_eg1.png
+
+Ingress manifest example2 - multiple hostname
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Ingress supports **multiple hostname** for the same IP address
+
+.. image:: ./images/gcp_k8s_workload/ingress_resource_manifest_eg2.png
+
+
+Ingress manifest example2 - multiple path
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/ingress_resource_manifest_eg3.png
+
+
+How to update an ingress
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-blokc:: bash
+
+  kubectl edit ingress [NAME]
+  kubectl replace -f [FILE]
+
+
+Backend Config
+>>>>>>>>>>>>>>
+
+Backend config is a custom resource used by ingress controller to define
+configuration for all these services.
+
+
+Ingress additional ingress features
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/ingress_resource_additional_features.png
+
+
+
+Container-Native Load Balancing
+-------------------------------
+
+Dobule-Hop Dilemma
+>>>>>>>>>>>>>>>>>>
+
+* Two Level of Balancing ( causing multiple hops )
+
+  * LoadBalancer
+  * Kube Proxy
+
+.. image:: ./images/gcp_k8s_workload/double_hop_dilemma.png
+
+
+Container-Native Load Balancing details
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* relies on a data model called Network Endpoint Groups or NEGs.
+* NEGs are a set of network endpoints representing IP to pod pairs which means that,
+Pods can't simply be just another endpoint, within that group, equal in standing, to compute instance BMs.
+* Every connection is made directly between the load balancer, and the intended Pod.
+
+.. image:: ./images/gcp_k8s_workload/container_native_load_balancing.png
+
+.. image:: ./images/gcp_k8s_workload/container_native_load_balacing_action.png
+
+
+Benefits
+>>>>>>>>
+
+* Traffic goes directly to pods
+* Support for load balancer features
+* Increased visibility
+* Improved network performance ( less hop )
+* Support for other GCP networking services
+
+
+
+Network Security
+----------------
+
+* One Pod can commumicate with all pods, but what if we don't restrict it.
+
+Network Policy
+>>>>>>>>>>>>>>
+
+A pod-level firewall restricting access to other Pods and Services
+
+Must be enabled:
+
+* Requires at least 2 nodes of n1-standard-1 or higher ( recommended minimum is 3 )
+
+  * f1-micro and g1-small instances are not supported.
+
+* Network Policy is enabled on the creation of the cluser and will always apply.
+* If Network Policy is applied after cluster is created, Node must be recreated.
+
+  * GKE does this during an active maintenance window. ( What is this? )
+
+
+Enabling a network policy
+>>>>>>>>>>>>>>>>>>>>>>>>>
+
+**Enabling Network Policy Enforement consumes additional resources in Node**
+
+Enable a network policy for a new cluster
+
+.. code-block:: bash
+
+  gcloud container clusters create [NAME] --enable-network-policy
+
+
+Enable a netowrk policy for an existing cluster
+
+.. code-block:: bash
+
+  # [NAME] is cluster name
+  gcloud container clusters update [NAME] --update-addons-NetworkPolicy=ENABLED
+  gcloud container clusters update [NAME] --enable-network-policy
+
+
