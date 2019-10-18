@@ -6,7 +6,7 @@ Check Health
 
 .. code-block:: bash
 
-  kudu cluster ksck <kudu-master-hostname>
+  sudo -u kudu kudu cluster ksck <kudu-lead-master-hostname>
 
 Scale Limitation
 ----------------
