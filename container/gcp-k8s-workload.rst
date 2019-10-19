@@ -821,7 +821,7 @@ Cronjobs
 Practice Deploying Jobs
 -----------------------
 
-Prepareation / Launch Kubernete cluster
+Preparation / Launch Kubernete cluster
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 .. code-block:: bash
@@ -1640,6 +1640,240 @@ Helm Architecture
 .. image:: ./images/gcp_k8s_workload/helm_charts.png
 
 
+
+Practice Deploying Kubernetes Engine via Helm Charts
+----------------------------------------------------
+
+preparation
+>>>>>>>>>>>
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+
+  gcloud container clusters create $my_cluster --num-nodes 3  --enable-ip-alias --zone $my_zone
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+
+
+setup Helm / Tiller
+>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ wget https://storage.googleapis.com/kubernetes-helm/helm-v2.6.2-linux-amd64.tar.gz
+  $ tar zxfv helm-v2.6.2-linux-amd64.tar.gz -C ~/
+  $ cp linux-amd64/helm ~/
+  $ ~/helm version
+
+
+  # ensure the current account has the cluster-admin role in cluster
+  $ kubectl create clusterrolebinding user-admin-binding \
+   --clusterrole=cluster-admin \
+   --user=$(gcloud config get-value account)
+
+  # create a Kubernetes service account that is Tiller -
+  # the server side of Helm, can be used for deploying charts.
+  $ kubectl create serviceaccount tiller --namespace kube-system
+
+  # Grant the Tiller service account the cluster-admin role in your cluster:
+  $ kubectl create clusterrolebinding tiller-admin-binding \
+   --clusterrole=cluster-admin \
+   --serviceaccount=kube-system:tiller
+
+  # initialize Helm using the service account
+  ~/helm init --service-account=tiller
+
+
+Update Helm repositories
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  ~/helm repo update
+
+
+Inspect Helm chart
+>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  ~/helm inspect stable/redis
+
+
+Create Redis service on cluster with dry-run ( showing template )
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  ~/helm install --version=8.1.5 stable/redis --dry-run --debug
+
+
+Create Redis service on cluster
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+    ~/helm install --version=8.1.5 stable/redis
+    NAME:   falling-gopher
+    LAST DEPLOYED: Fri Oct 18 20:07:17 2019
+    NAMESPACE: default
+    STATUS: DEPLOYED
+    RESOURCES:
+    ==> v1/Secret
+    NAME                  TYPE    DATA  AGE
+    falling-gopher-redis  Opaque  1     1s
+    ==> v1/ConfigMap
+    NAME                         DATA  AGE
+    falling-gopher-redis         3     1s
+    falling-gopher-redis-health  6     1s
+    ==> v1/Service
+    NAME                           CLUSTER-IP   EXTERNAL-IP  PORT(S)   AGE
+    falling-gopher-redis-headless  None         <none>       6379/TCP  1s
+    falling-gopher-redis-master    10.12.10.33  <none>       6379/TCP  1s
+    falling-gopher-redis-slave     10.12.2.17   <none>       6379/TCP  1s
+    ==> v1beta2/StatefulSet
+    NAME                         KIND
+    falling-gopher-redis-master  StatefulSet.v1beta2.apps
+    falling-gopher-redis-slave   StatefulSet.v1beta2.apps
+    NOTES:
+    ** Please be patient while the chart is being deployed **
+    Redis can be accessed via port 6379 on the following DNS names from within your cluster:
+    falling-gopher-redis-master.default.svc.cluster.local for read/write operations
+    falling-gopher-redis-slave.default.svc.cluster.local for read-only operations
+    To get your password run:
+        export REDIS_PASSWORD=$(kubectl get secret --namespace default falling-gopher-redis -o jsonpath="{.data.redis-password}" | base64 --decode)
+    To connect to your Redis server:
+    1. Run a Redis pod that you can use as a client:
+       kubectl run --namespace default falling-gopher-redis-client --rm --tty -i --restart='Never' \
+        --env REDIS_PASSWORD=$REDIS_PASSWORD \
+       --image docker.io/bitnami/redis:5.0.5-debian-9-r36 -- bash
+    2. Connect using the Redis CLI:
+       redis-cli -h falling-gopher-redis-master -a $REDIS_PASSWORD
+       redis-cli -h falling-gopher-redis-slave -a $REDIS_PASSWORD
+    To connect to your database from outside the cluster execute the following commands:
+        kubectl port-forward --namespace default svc/falling-gopher-redis 6379:6379 &
+        redis-cli -h 127.0.0.1 -p 6379 -a $REDIS_PASSWORD
+
+
+Cheeck created Redis Infra
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  $ kubectl get node
+  NAME                                                STATUS   ROLES    AGE   VERSION
+  gke-standard-cluster-1-default-pool-8e510ec2-09xj   Ready    <none>   19m   v1.13.10-gke.0
+  gke-standard-cluster-1-default-pool-8e510ec2-nzvp   Ready    <none>   19m   v1.13.10-gke.0
+  gke-standard-cluster-1-default-pool-8e510ec2-q4l0   Ready    <none>   19m   v1.13.10-gke.0
+
+  $ kubectl get pod -o wide
+  NAME                            READY   STATUS    RESTARTS   AGE   IP         NODE                                                NOMINATED NODE   READI
+  NESS GATES
+  falling-gopher-redis-master-0   1/1     Running   0          14m   10.8.2.5   gke-standard-cluster-1-default-pool-8e510ec2-nzvp   <none>           <none>
+  falling-gopher-redis-slave-0    1/1     Running   0          14m   10.8.1.4   gke-standard-cluster-1-default-pool-8e510ec2-q4l0   <none>           <none>
+  falling-gopher-redis-slave-1    1/1     Running   0          13m   10.8.2.6   gke-standard-cluster-1-default-pool-8e510ec2-nzvp   <none>           <none>
+
+  $ kubectl get service
+  NAME                            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+  falling-gopher-redis-headless   ClusterIP   None          <none>        6379/TCP   14m
+  falling-gopher-redis-master     ClusterIP   10.12.10.33   <none>        6379/TCP   14m
+  falling-gopher-redis-slave      ClusterIP   10.12.2.17    <none>        6379/TCP   14m
+  kubernetes                      ClusterIP   10.12.0.1     <none>        443/TCP    19m
+
+
+A Kubernetes StatefulSet manages the deployment and scaling of a set of Pods,
+and provides guarantees about the ordering and uniqueness of these Pods.
+
+.. code-block:: bash
+
+    $ kubectl get statefulsets
+    NAME                          READY   AGE
+    falling-gopher-redis-master   1/1     18m
+    falling-gopher-redis-slave    2/2     18m
+
+
+Cheeck Redis config in ConfigMap
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+    $ kubectl get configmaps
+    NAME                          DATA   AGE
+    falling-gopher-redis          3      19m
+    falling-gopher-redis-health   6      19m
+
+    $ kubectl describe configmaps falling-gopher-redis
+    Name:         falling-gopher-redis
+    Namespace:    default
+    Labels:       app=redis
+                  chart=redis-8.1.5
+                  heritage=Tiller
+                  release=falling-gopher
+    Annotations:  <none>
+    Data
+    ====
+    master.conf:
+    ----
+    dir /data
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    redis.conf:
+    ----
+    # User-supplied configuration:
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+    appendonly yes
+    # Disable RDB persistence, AOF persistence already enabled.
+    save ""
+    replica.conf:
+    ----
+    dir /data
+    slave-read-only yes
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    Events:  <none>
+
+
+Check secrets
+>>>>>>>>>>>>>
+
+Kubernetes Secret specially intended for sensitive information such as passwords and authorization keys
+
+.. code-block:: bash
+
+    $ kubectl describe secrets falling-gopher-redis
+    Name:         falling-gopher-redis
+    Namespace:    default
+    Labels:       app=redis
+                  chart=redis-8.1.5
+                  heritage=Tiller
+                  release=falling-gopher
+    Annotations:  <none>
+
+    Type:  Opaque
+
+    Data
+    ====
+    redis-password:  10 bytes
+
+
+Test Redis
+>>>>>>>>>>
+
+.. code-block:: bash
+
+  export REDIS_IP=$(kubectl get services -l app=redis -o json | jq -r '.items[].spec | select(.selector.role=="master")' | jq -r '.clusterIP')
+  export REDIS_PW=$(kubectl get secret -l app=redis -o jsonpath="{.items[0].data.redis-password}"  | base64 --decode)
+
+  echo Redis Cluster Address : $REDIS_IP
+  echo Redis auth password   : $REDIS_PW
+
+  kubectl run redis-test --rm --tty -i --restart='Never' \
+    --env REDIS_PW=$REDIS_PW \
+    --env REDIS_IP=$REDIS_IP \
+    --image docker.io/bitnami/redis:4.0.12 -- bash
+
 Pod Networking
 --------------
 
@@ -1797,6 +2031,50 @@ Service types summery
 .. image:: ./images/gcp_k8s_workload/service_types_summary.png
 
 
+Practice Configuring Kubernetes Private Cluster
+-----------------------------------------------
+
+Create Private Cluster
+>>>>>>>>>>>>>>>>>>>>>>
+
+* Name: private cluster
+* Zone: us-central1-a
+* Num of Nodes: 2
+* Networking section, select Enable VPC-native (using alias IP)
+* In the Network security section, select Private cluster and select Access master using its external IP address
+* Deselect Enable master authorized networks ( kubectl only from within GCP Network. )
+* For Master IP Range, enter 172.16.0.0/28
+
+
+Inspect Cluster
+>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  gcloud container clusters describe private-cluster --region us-central1-a
+
+
+**The following values appear only under the private cluster:**
+
+* privateEndpoint, an internal IP address. Nodes use this internal IP address to communicate with the cluster master.
+* publicEndpoint, an external IP address. External services and administrators can use the external IP address to communicate with the cluster master.
+
+
+Options to lock down cluster
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* The whole cluster can have external access.
+* The whole cluster can be private.
+* The nodes can be private while the cluster master is public,
+and you can limit which external networks are authorized to access the cluster master.
+
+
+Accessing public IP address
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Without public IP addresses, code running on the nodes can't access
+the public internet unless you configure a NAT gateway such as Cloud NAT.
+
 
 Ingress Resource
 ----------------
@@ -1852,7 +2130,6 @@ Ingress additional ingress features
 .. image:: ./images/gcp_k8s_workload/ingress_resource_additional_features.png
 
 
-
 Container-Native Load Balancing
 -------------------------------
 
@@ -1895,6 +2172,11 @@ Network Security
 ----------------
 
 * One Pod can commumicate with all pods, but what if we don't restrict it.
+* By default, if there is no Network Policy exists, then all ingress/egress traffic will be allowed
+between pods in the the namespace
+* A drawback of network policies is that they can be a lot of work to manage.
+( consider to use SDO: https://cloud.google.com/istio/ )
+
 
 Network Policy
 >>>>>>>>>>>>>>
@@ -1934,3 +2216,186 @@ Enable a netowrk policy for an existing cluster
   gcloud container clusters update [NAME] --enable-network-policy
 
 
+Disabling a network policy
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Disabling a network policy is a two step process
+
+* disable network policy for nodes
+* disable network policy for master
+
+.. code-block:: bash
+
+  gcloud container clusters create [NAME] --no-enable-network-policy
+
+
+How to write a network policy
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* If `podSelector` is not provided or is empty, network policy will be applied to all Pod is the namespace.
+* If `policyTypes` is not provided, `Ingress` is defined as default
+* Allowed Traffic is defined `ingress` from section. ( inbound on TCP port 6379 )
+
+  * ipBlock
+  * namespaceSelector
+  * podSelector
+
+.. image:: ./images/gcp_k8s_workload/network_policy_ingress_manifest.png
+
+.. image:: ./images/gcp_k8s_workload/network_policy_egress_manifest.png
+
+
+Default Network Policy
+>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/network_policy_default.png
+
+
+Pratice Creating a cluster network policy
+-----------------------------------------
+
+Preparation
+>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+  gcloud container clusters create $my_cluster --num-nodes 2 --enable-ip-alias --zone $my_zone --enable-network-policy
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+
+
+Sample application
+>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  kubectl run hello-web --labels app=hello \
+    --image=gcr.io/google-samples/hello-app:1.0 --port 8080 --expose
+
+
+Create Network Policy
+>>>>>>>>>>>>>>>>>>>>>
+
+**Restrict incoming traffic to Pods**
+
+.. code-block:: bash
+
+  git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+  cd ~/training-data-analyst/courses/ak8s/09_GKE_Networks/
+
+  $ cat hello-allow-from-foo.yaml
+  kind: NetworkPolicy
+  apiVersion: networking.k8s.io/v1
+  metadata:
+    name: hello-allow-from-foo
+  spec:
+    policyTypes:
+    - Ingress
+    podSelector:
+      matchLabels:
+        app: hello
+    ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: foo
+
+
+  $ kubectl apply -f hello-allow-from-foo.yaml
+
+  $ kubectl get networkpolicy
+  NAME                   POD-SELECTOR   AGE
+  hello-allow-from-foo   app=hello      9s
+
+
+Validate the ingress policy
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Run a temporary Pod
+
+.. code-block:: bash
+
+  # --stdin ( alternatively -i ) creates an interactive session attached to STDIN on the container.
+  # --tty ( alternatively -t ) allocates a TTY for each container in the pod.
+  # --rm instructs Kubernetes to treat this as a temporary Pod that will be removed as soon as
+  #  it completes its startup task. As this is an interactive session it will be removed as soon as the user exits the session.
+  # --label ( alternatively -l ) adds a set of labels to the pod.
+  # --restart defines the restart policy for the Pod
+
+  kubectl run test-1 --labels app=foo --image=alpine --restart=Never --rm --stdin --tty
+
+  ( install wget in alpine OS )
+  apk add ca-certificates wget
+
+  wget -qO- --timeout=2 http://hello-web:8080
+
+
+Try with pod with different label
+
+.. code-block:: bash
+
+  kubectl run test-1 --labels app=other --image=alpine --restart=Never --rm --stdin --tty
+
+  ( install wget in alpine OS )
+  apk add ca-certificates wget
+
+  wget -qO- --timeout=2 http://hello-web:8080
+
+
+Restrict outgoing traffic from the Pods
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+    $ cat foo-allow-to-hello.yaml
+    kind: NetworkPolicy
+    apiVersion: networking.k8s.io/v1
+    metadata:
+      name: foo-allow-to-hello
+    spec:
+      policyTypes:
+      - Egress
+      podSelector:
+        matchLabels:
+          app: foo
+      egress:
+      - to:
+        - podSelector:
+            matchLabels:
+              app: hello
+      - to:
+        ports:
+        - protocol: UDP
+          port: 53
+
+    # create egress policy
+    $ kubectl apply -f foo-allow-to-hello.yaml
+
+    # Verify that the policy was created
+    $ kubectl get networkpolicy
+    NAME                   POD-SELECTOR   AGE
+    foo-allow-to-hello     app=foo        4s
+    hello-allow-from-foo   app=hello      15m
+
+
+Validate the egress policy
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Sample application
+
+.. code-block:: bash
+
+  kubectl run hello-web-2 --labels app=hello-2 \
+    --image=gcr.io/google-samples/hello-app:1.0 --port 8080 --expose
+
+
+Create temporary Pod
+
+.. code-block:: bash
+
+  kubectl run test-3 --labels app=foo --image=alpine --restart=Never --rm --stdin --tty
+
+  ( install wget in alpine OS )
+  apk add ca-certificates wget
