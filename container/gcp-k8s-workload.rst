@@ -2911,6 +2911,110 @@ Replicates data between two zones in the same region
 
 
 
+Practice: Configuring Persistent Storage for Kubernetes Engine
+--------------------------------------------------------------
+
+
+Task 0. Setup cluster / Source code
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+
+  gcloud container clusters create $my_cluster \
+   --num-nodes 3 --enable-ip-alias --zone $my_zone
+
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+
+  git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+  cd ~/training-data-analyst/courses/ak8s/12_Storage/
+
+Task 1. Create PVs and PVCs
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+  Most of the time, you don't need to directly configure PV objects or create Compute Engine persistent disks.
+  Instead, you can create a PVC, and Kubernetes automatically provisions a persistent disk for you.
+
+
+.. code-block:: bash
+
+  $ kubectl get persistentvolumeclaim
+  No resources found.
+
+  $ cat pvc-demo.yaml
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: hello-web-disk
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 30Gi
+
+  $ kubectl apply -f pvc-demo.yaml
+
+  $ kubectl get persistentvolumeclaim
+  NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+  hello-web-disk   Bound    pvc-f4a8f679-f2e2-11e9-8ded-42010a800028   30Gi       RWO            standard       13s
+
+
+Task 2. Mount and verify GCP persistent disk PVCs in Pods
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+In this task, you attach your persistent disk PVC to a Pod.
+You mount the PVC as a volume as part of the manifest for the Pod.
+
+
+1. Mount the PVC to a Pod
+"""""""""""""""""""""""""
+
+  The manifest file `pod-volume-demo.yaml` deploys an nginx container,
+  attaches the `pvc-demo-volume` to the Pod and mounts that volume to the path `/var/www/html` inside the nginx container.
+  Files saved to this directory inside the container will be saved to the persistent volume
+  and persist even if the Pod and the container are shutdown and recreated.
+
+
+.. code-block:: bash
+
+  $ cat pod-volume-demo.yaml
+  kind: Pod
+  apiVersion: v1
+  metadata:
+    name: pvc-demo-pod
+  spec:
+    containers:
+      - name: frontend
+        image: nginx
+        volumeMounts:
+        - mountPath: "/var/www/html"
+          name: pvc-demo-volume
+    volumes:
+      - name: pvc-demo-volume
+        persistentVolumeClaim:
+          claimName: hello-web-disk
+
+  $ kubectl apply -f pod-volume-demo.yaml
+
+
+2. Create a file in mounted volume in pod
+"""""""""""""""""""""""""""""""""""""""""
+
+.. code-block::
+
+  $ kubectl exec -it pvc-demo-pod -- sh
+  echo Test webpage in a persistent volume!>/var/www/html/index.html
+  chmod +x /var/www/html/index.html
+
+
+
+
+
+
 StatefulSet
 -----------
 
@@ -3018,9 +3122,9 @@ you create a service account with credentials, and pass those credentials throug
 Task1: Work with Secret
 >>>>>>>>>>>>>>>>>>>>>>>
 
-1. Creat service account with name, `no-permissions`
+**1. Creat service account with name, `no-permissions`**
 
-2. preparation
+**2. preparation**
 
 .. code-block:: bash
 
@@ -3050,7 +3154,7 @@ Task1: Work with Secret
   --topic=$my_pubsub_topic
 
 
-4. Deploy an application to read from Cloud Pub/Sub topics.
+**4. Deploy an application to read from Cloud Pub/Sub topics.**
 
   You create a deployment with a container that can read from Cloud Pub/Sub topics.
   Since specific permissions are required to subscribe to, and read from,
@@ -3105,7 +3209,7 @@ Task1: Work with Secret
   minated with (StatusCode.PERMISSION_DENIED, User not authorized to perform this action.)>)
 
 
-5. Create service account credentials
+**5. Create service account credentials**
 
   You will now create a new service account and grant it access to the pub/sub subscription
   that the test application is attempting to use. Instead of changing the service account of the GKE cluster nodes,
@@ -3120,7 +3224,7 @@ Task1: Work with Secret
   Upload service account JSON key and rename to `credentials.json`
 
 
-6. Save the `credentials.json` key file to a Kubernetes Secret named `pubsub-key`
+**6. Save the `credentials.json` key file to a Kubernetes Secret named `pubsub-key`**
 
 .. code-block:: bash
 
@@ -3145,7 +3249,7 @@ Task1: Work with Secret
   key.json:  2359 bytes
 
 
-7. Configure the application with the secret
+**7. Configure the application with the secret**
 
   You now update the deployment to include the following changes:
 
@@ -3192,7 +3296,7 @@ Task1: Work with Secret
   pubsub-54f64df978-bm5zg   1/1     Running   0          26s
 
 
-8. Test receiving Cloud Pub/Sub messages
+**8. Test receiving Cloud Pub/Sub messages**
 
 .. code-block:: bash
 
@@ -3219,7 +3323,7 @@ and are therefore better suited for confidential or sensitive information such a
 ConfigMaps are better suited for general configuration information such as port numbers.
 
 
-1. Use the kubectl command to create ConfigMaps
+**1. Use the kubectl command to create ConfigMaps**
 
 .. code-block:: bash
 
@@ -3272,7 +3376,7 @@ ConfigMaps are better suited for general configuration information such as port 
   Events:  <none>
 
 
-3. Use manifest files to create ConfigMaps
+**3. Use manifest files to create ConfigMaps**
 
 .. code-block:: bash
 
@@ -3308,13 +3412,13 @@ ConfigMaps are better suited for general configuration information such as port 
   Events:  <none>
 
 
-4. Use environment variables to consume ConfigMaps in containers
+**4. Use environment variables to consume ConfigMaps in containers**
 
-In order to access ConfigMaps from inside Containers using environment variables
-the Pod definition must be updated to include one or more configMapKeyRefs.
-The file pubsub-configmap.yaml is an updated version of the Cloud Pub/Sub demo Deployment
-that includes the following additional env: setting at the end of the file
-to import environmental variables from the ConfigMap into the container.
+  In order to access ConfigMaps from inside Containers using environment variables
+  the Pod definition must be updated to include one or more configMapKeyRefs.
+  The file pubsub-configmap.yaml is an updated version of the Cloud Pub/Sub demo Deployment
+  that includes the following additional env: setting at the end of the file
+  to import environmental variables from the ConfigMap into the container.
 
 
 .. code-block:: bash
@@ -3383,7 +3487,7 @@ to import environmental variables from the ConfigMap into the container.
   PWD=/
 
 
-5. Use mounted volumes to consume ConfigMaps in containers
+**5. Use mounted volumes to consume ConfigMaps in containers**
 
   In this Deployment the ConfigMap named sample-3
   that you created earlier in this task is also added as a volume called config-3 in the Pod spec.
