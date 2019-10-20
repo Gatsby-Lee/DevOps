@@ -3011,8 +3011,206 @@ You mount the PVC as a volume as part of the manifest for the Pod.
   chmod +x /var/www/html/index.html
 
 
+3. Test the persistence of the PV
+"""""""""""""""""""""""""""""""""
+
+  You will now delete the Pod from the cluster, confirm that the PV still exists,
+  then redeploy the Pod and verify the contents of the PV remain intact
 
 
+.. code-block:: bash
+
+  kubectl delete pod pvc-demo-pod
+  kubectl get pods
+
+  # PVC still exists, and was not deleted when the Pod was deleted.
+  $ kubectl get persistentvolumeclaim
+  NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+  hello-web-disk   Bound    pvc-f4a8f679-f2e2-11e9-8ded-42010a800028   30Gi       RWO            standard       10m
+
+  # re-deploy
+  $ kubectl apply -f pod-volume-demo.yaml
+
+  # connect to pod and check
+  $ kubectl exec -it pvc-demo-pod -- sh
+
+
+Task 3. Create StatefulSets with PVCs
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+In this task, you use your PVC in a StatefulSet. A StatefulSet is like a Deployment,
+except that the Pods are given unique identifiers.
+
+
+1. Release the PVC
+""""""""""""""""""
+
+.. code-block:: bash
+
+  kubectl delete pod pvc-demo-pod
+
+
+2. Create a StatefulSet
+"""""""""""""""""""""""
+
+  The manifest file `statefulset-demo.yaml` creates a StatefulSet that includes a LoadBalancer service
+  and three replicas of a Pod containing an nginx container and a volumeClaimTemplate for 30 gigabyte PVCs
+  with the name `hello-web-disk`. The nginx containers mount the PVC called
+  `hello-web-disk` at `/var/www/html` as in the previous task.
+
+
+.. code-block:: bash
+
+  $ cat statefulset-demo.yaml
+  kind: Service
+  apiVersion: v1
+  metadata:
+    name: statefulset-demo-service
+  spec:
+    ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9376
+    type: LoadBalancer
+  ---
+  apiVersion: apps/v1
+  kind: StatefulSet
+  metadata:
+    name: statefulset-demo
+  spec:
+    selector:
+      matchLabels:
+        app: MyApp
+    serviceName: statefulset-demo-service
+    replicas: 3
+    updateStrategy:
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app: MyApp
+      spec:
+        containers:
+        - name: stateful-set-container
+          image: nginx
+          ports:
+          - containerPort: 80
+            name: http
+          volumeMounts:
+          - name: hello-web-disk
+            mountPath: "/var/www/html"
+    volumeClaimTemplates:
+    - metadata:
+        name: hello-web-disk
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 30Gi
+
+  # StatefulSet with the volume
+  $ kubectl apply -f statefulset-demo.yaml
+  service/statefulset-demo-service created
+  statefulset.apps/statefulset-demo created
+
+
+3. Check launched StatefulSet / PVC
+"""""""""""""""""""""""""""""""""""
+
+.. code-block:: bash
+
+  $ kubectl describe statefulset statefulset-demo
+  Name:               statefulset-demo
+  Namespace:          default
+  CreationTimestamp:  Sat, 19 Oct 2019 19:56:49 -0700
+  Selector:           app=MyApp
+  Labels:             <none>
+  Annotations:        kubectl.kubernetes.io/last-applied-configuration:
+                        {"apiVersion":"apps/v1","kind":"StatefulSet","metadata":{"annotations":{},"name":"statefulset-demo","namespace":"default"},"spec":{"replic...
+  Replicas:           824638123608 desired | 2 total
+  Update Strategy:    RollingUpdate
+  Pods Status:        1 Running / 1 Waiting / 0 Succeeded / 0 Failed
+  Pod Template:
+    Labels:  app=MyApp
+    Containers:
+    stateful-set-container:
+      Image:        nginx
+      Port:         80/TCP
+      Host Port:    0/TCP
+      Environment:  <none>
+      Mounts:
+        /var/www/html from hello-web-disk (rw)
+    Volumes:  <none>
+  Volume Claims:
+    Name:          hello-web-disk
+    StorageClass:
+    Labels:        <none>
+    Annotations:   <none>
+    Capacity:      30Gi
+    Access Modes:  [ReadWriteOnce]
+  Events:
+    Type    Reason            Age   From                    Message
+    ----    ------            ----  ----                    -------
+    Normal  SuccessfulCreate  28s   statefulset-controller  create Claim hello-web-disk-statefulset-demo-0 Pod statefulset-demo-0 in StatefulSet statefulset-demo success
+    Normal  SuccessfulCreate  28s   statefulset-controller  create Pod statefulset-demo-0 in StatefulSet statefulset-demo successful
+    Normal  SuccessfulCreate  13s   statefulset-controller  create Claim hello-web-disk-statefulset-demo-1 Pod statefulset-demo-1 in StatefulSet statefulset-demo success
+    Normal  SuccessfulCreate  13s   statefulset-controller  create Pod statefulset-demo-1 in StatefulSet statefulset-demo successful
+
+
+  $ kubectl get pods
+  NAME                 READY   STATUS    RESTARTS   AGE
+  statefulset-demo-0   1/1     Running   0          2m11s
+  statefulset-demo-1   1/1     Running   0          116s
+  statefulset-demo-2   1/1     Running   0          95s
+
+
+  $ kubectl get pvc
+  NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+  hello-web-disk                      Bound    pvc-f4a8f679-f2e2-11e9-8ded-42010a800028   30Gi       RWO            standard       18m
+  hello-web-disk-statefulset-demo-0   Bound    pvc-42ea1955-f2e5-11e9-8ded-42010a800028   30Gi       RWO            standard       2m25s
+  hello-web-disk-statefulset-demo-1   Bound    pvc-4bd42af9-f2e5-11e9-8ded-42010a800028   30Gi       RWO            standard       2m10s
+  hello-web-disk-statefulset-demo-2   Bound    pvc-583c5de6-f2e5-11e9-8ded-42010a800028   30Gi       RWO            standard       109s
+
+
+  $ kubectl describe pvc hello-web-disk-statefulset-demo-0
+  Name:          hello-web-disk-statefulset-demo-0
+  Namespace:     default
+  StorageClass:  standard
+  Status:        Bound
+  Volume:        pvc-42ea1955-f2e5-11e9-8ded-42010a800028
+  Labels:        app=MyApp
+  Annotations:   pv.kubernetes.io/bind-completed: yes
+                pv.kubernetes.io/bound-by-controller: yes
+                volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/gce-pd
+  Finalizers:    [kubernetes.io/pvc-protection]
+  Capacity:      30Gi
+  Access Modes:  RWO
+  VolumeMode:    Filesystem
+  Events:
+    Type       Reason                 Age   From                         Message
+    ----       ------                 ----  ----                         -------
+    Normal     ProvisioningSucceeded  3m8s  persistentvolume-controller  Successfully provisioned volume pvc-42ea1955-f2e5-11e9-8ded-42010a800028 using kubernetes.io/gce-pd
+  Mounted By:  statefulset-demo-0
+
+
+Task 4. Verify the persistence of Persistent Volume connections to Pods managed by StatefulSets
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+In this task, you verify the connection of Pods in StatefulSets to particular PVs as the Pods are stopped and restarted.
+
+
+.. code-block:: bash
+
+  $ kubectl exec -it statefulset-demo-0 -- sh
+
+  # create test file in one of stateful set
+  echo Test webpage in a persistent volume!>/var/www/html/index.html
+  chmod +x /var/www/html/index.html
+
+  # After removed, StatefulSet automatically retart `statefulset-demo-0`.
+  $ kubectl delete pod statefulset-demo-0
+
+  # check if test file still exists.
 
 
 StatefulSet
