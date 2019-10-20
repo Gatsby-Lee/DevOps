@@ -2167,6 +2167,393 @@ Benefits
 * Support for other GCP networking services
 
 
+Practice Creating Services and Ingress Resources
+------------------------------------------------
+
+Preparation
+>>>>>>>>>>>
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+
+  gcloud container clusters create $my_cluster \
+   --num-nodes 3 --enable-ip-alias --zone $my_zone
+
+  # Configure access to your cluster for kubectl
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+
+
+Source code to use / Create Service and Pod
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. code-block:: bash
+
+  git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+  cd ~/training-data-analyst/courses/ak8s/10_Services/
+
+  $ cat dns-demo.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: dns-demo
+  spec:
+    selector:
+      name: dns-demo
+    clusterIP: None
+    ports:
+    - name: dns-demo
+      port: 1234
+      targetPort: 1234
+  ---
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: dns-demo-1
+    labels:
+      name: dns-demo
+  spec:
+    hostname: dns-demo-1
+    subdomain: dns-demo
+    containers:
+    - name: nginx
+      image: nginx
+  ---
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: dns-demo-2
+    labels:
+      name: dns-demo
+  spec:
+    hostname: dns-demo-2
+    subdomain: dns-demo
+    containers:
+    - name: nginx
+      image: nginx
+
+  $ kubectl apply -f dns-demo.yaml
+
+
+Access Pods and services by FQDN
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Test name resolution for pods and services from the Cloud Shell
+and from Pods running inside your cluster.
+
+**FQDN of a Pod is hostname.subdomain.namespace.svc.cluster.local**
+
+* `svc.cluster.local` is constant.
+* hostname, subdomain, and namespace are specific to pod.
+
+.. code-block:: bash
+
+  $ kubectl get pods
+  NAME         READY   STATUS    RESTARTS   AGE
+  dns-demo-1   1/1     Running   0          25s
+  dns-demo-2   1/1     Running   0          25s
+
+  $ kubectl get service
+  NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+  dns-demo     ClusterIP   None         <none>        1234/TCP   31s
+  kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP    3m58s
+
+  $ kubectl describe pods dns-demo-2
+
+  # Get pod IP
+  $ echo $(kubectl get pod dns-demo-2 --template={{.status.podIP}})
+
+
+Ping from Could Console. It will fail since not in cluster.
+
+.. code-block:: bash
+
+  ping dns-demo-2.dns-demo.default.svc.cluster.local
+
+
+Ping from one of pod in cluster
+
+.. code-block:: bash
+
+  kubectl exec -it dns-demo-1 /bin/bash
+
+  # in pod, install ping
+  apt-get update
+  apt-get install -y iputils-ping
+
+
+Deploy a sample workload and a ClusterIP service
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Create deployment
+
+.. code-block:: bash
+
+  $ cat hello-v1.yaml
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: hello-v1
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        run: hello-v1
+    template:
+      metadata:
+        labels:
+          run: hello-v1
+          name: hello-v1
+      spec:
+        containers:
+        - image: gcr.io/google-samples/hello-app:1.0
+          name: hello-v1
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+
+
+  $ kubectl create -f hello-v1.yaml
+
+  $ kubectl get deployments
+  NAME       READY   UP-TO-DATE   AVAILABLE   AGE
+  hello-v1   3/3     3            3           36s
+
+  $ kubectl get pods
+  NAME                        READY   STATUS    RESTARTS   AGE
+  dns-demo-1                  1/1     Running   0          12m
+  dns-demo-2                  1/1     Running   0          12m
+  hello-v1-64574f6f7f-dcbcz   1/1     Running   0          42s
+  hello-v1-64574f6f7f-nh4vp   1/1     Running   0          42s
+  hello-v1-64574f6f7f-zmbkr   1/1     Running   0          42s
+
+
+Create Service
+
+.. code-block:: bash
+
+  $ cat hello-svc.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: hello-svc
+  spec:
+    type: ClusterIP
+    selector:
+      name: hello-v1
+    ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+  $ kubectl apply -f ./hello-svc.yaml
+
+  # service is not accessible since it is ClusterIP.
+  $ kubectl get service hello-svc
+  NAME        TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+  hello-svc   ClusterIP   10.12.3.109   <none>        80/TCP    45s
+
+
+Service won't be accessible from Cloud Console, but accessible from pod in Cluster
+
+.. code-block:: bash
+
+  $ kubectl exec -it dns-demo-1 /bin/bash
+
+  # in pod, install curl
+  apt-get install -y curl
+  curl hello-svc.default.svc.cluster.local
+
+
+Convert the service to use NodePort
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Check modified version of `hello-svc.yaml` called `hello-nodeport-svc.yaml`
+
+.. code-block:: bash
+
+  $ cat hello-nodeport-svc.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: hello-svc
+  spec:
+    type: NodePort
+    selector:
+      name: hello-v1
+    ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      nodePort: 30100
+
+
+Deploy the manifest that changes the service type for the `hello-svc` to `NodePort`
+
+.. code-block:: bash
+
+  kubectl apply -f ./hello-nodeport-svc.yaml
+
+
+Check updated Service. Note that there is still no external IP allocated for this service.
+
+.. code-block:: bash
+
+  $ kubectl get service hello-svc
+  NAME        TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
+  hello-svc   NodePort   10.12.3.109   <none>        80:30100/TCP   9m18s
+
+
+Deploy a new set of Pods and a LoadBalancer service
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Deploy a new set of Pods running a different version of the application so that you can easily differentiate the two services.
+You will then expose the new Pods as a LoadBalancer service and access the service from outside the cluster
+
+
+Second Deployment manifest called hello-v2.yaml
+
+.. code-block:: bash
+
+  $ cat hello-v2.yaml
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: hello-v2
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        run: hello-v2
+    template:
+      metadata:
+        labels:
+          run: hello-v2
+          name: hello-v2
+      spec:
+        containers:
+        - image: gcr.io/google-samples/hello-app:2.0
+          name: hello-v2
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+
+
+  $ kubectl create -f hello-v2.yaml
+
+  $ kubectl get deployments
+  NAME       READY   UP-TO-DATE   AVAILABLE   AGE
+  hello-v1   3/3     3            3           18m
+  hello-v2   3/3     3            3           6s
+
+
+Define service types, LoadBalancer Service, in the manifest
+
+.. code-block:: bash
+
+  $ cat hello-lb-svc.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: hello-lb-svc
+  spec:
+    type: LoadBalancer
+    selector:
+      name: hello-v2
+    ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+  $ kubectl apply -f ./hello-lb-svc.yaml
+
+
+Check Running Services
+
+.. code-block:: bash
+
+  $ kubectl get services
+  NAME           TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+  dns-demo       ClusterIP      None           <none>        1234/TCP       32m
+  hello-lb-svc   LoadBalancer   10.12.10.201   34.70.64.77   80:31798/TCP   63s
+  hello-svc      NodePort       10.12.3.109    <none>        80:30100/TCP   17m
+  kubernetes     ClusterIP      10.12.0.1      <none>        443/TCP        36m
+
+
+curl from Cloud Console will fail since service name is not exposed outside of the cluster, but external IP works.
+
+.. code-block:: bash
+
+  curl hello-lb-svc.default.svc.cluster.local
+  curl 34.70.64.7
+
+
+Deploy an Ingress resource
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Deploy an Ingress resource that will direct traffic to both services(v1,v2) based on the URL entered by the user.
+
+On GKE, Ingress is implemented using Cloud Load Balancing.
+When you create an ingress resource in your cluster,
+GKE creates an HTTP(S) load balancer and configures it to route traffic to your application.
+
+
+Crate Ingress resource
+
+.. codeb-block:: bash
+
+  $ cat hello-ingress.yaml
+  apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    name: hello-ingress
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+  spec:
+    rules:
+    - http:
+        paths:
+        - path: /v1
+          backend:
+            serviceName: hello-svc
+            servicePort: 80
+        - path: /v2
+          backend:
+            serviceName: hello-lb-svc
+            servicePort: 80
+
+  $ kubectl apply -f hello-ingress.yaml
+
+
+Check details of Ingress Resources
+
+.. code-block:: bash
+
+  $ kubectl describe ingress hello-ingress
+  Name:             hello-ingress
+  Namespace:        default
+  Address:
+  Default backend:  default-http-backend:80 (10.8.2.6:8080)
+  Rules:
+    Host  Path  Backends
+    ----  ----  --------
+    *
+          /v1   hello-svc:80 (<none>)
+          /v2   hello-lb-svc:80 (<none>)
+  Annotations:
+    kubectl.kubernetes.io/last-applied-configuration:  {"apiVersion":"extensions/v1beta1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/rewrite-target":"/"},"name":"hello-ingress","namespace":"default"},"spec":{"rules":[{"http":{"paths":[{"backend":{"serviceName":"hello-svc","servicePort":80},"path":"/v1"},{"backend":{"serviceName":"hello-lb-svc","servicePort":80},"path":"/v2"}]}}]}}
+
+    nginx.ingress.kubernetes.io/rewrite-target:  /
+  Events:
+    Type    Reason  Age   From                     Message
+    ----    ------  ----  ----                     -------
+    Normal  ADD     8s    loadbalancer-controller  default/hello-ingress
+
+
+**Note:** GKE might take a few minutes to set up forwarding rules until the Global load balancer used for the Ingress resource is ready to serve your application.
+In the meantime, you might get errors such as HTTP 404 or HTTP 500 until the load balancer configuration is propagated across the globe
 
 Network Security
 ----------------
@@ -2399,3 +2786,665 @@ Create temporary Pod
 
   ( install wget in alpine OS )
   apk add ca-certificates wget
+
+
+Volumes
+-------
+
+Regardless of volume type, Volumes are attached to pods, not containers.
+
+* Volumes are the method by which you attach storage to a Pod
+* Some volumes are ephemeral ( e.g.: ConfigMap, emptyDir )
+* Some volumes are persistent ( outlive a pod )
+
+
+Persistent storage options
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Block storage
+* Network file system
+* On GKE, persistent storage volume is backed by Compute Engine's Persistent Disks.
+* Independtent of the Pod's lifecycle
+* May exist before a Pod creation and be claimed ( and mounted. )
+
+
+.. image:: ./images/gcp_k8s_workload/volume_allow_container_share_data_in_pod.png
+
+.. image:: ./images/gcp_k8s_workload/volume_types.png
+
+
+
+
+Volume Types - emptyDir
+>>>>>>>>>>>>>>>>>>>>>>>
+
+* emptyDir volume is simply emptyDir that allows the containers within the pod
+to read and write to and from it.
+* created a pod is assigned to a node
+* exists as long as the pod exists, but removed if the pod is removed from Node for any reason.
+* short-term purpose
+* K8s creates emptyDir from Node's local disk or a memory backed file system.
+
+
+Volume Types - ConfigMap
+>>>>>>>>>>>>>>>>>>>>>>>>
+
+* Providing a way to inject application configuration data into pods from K8s.
+* The data stored in ConfigMap Object can be referenced in a Volume.
+
+
+Volume Types - secrets
+>>>>>>>>>>>>>>>>>>>>>>
+
+* similar to ConfigMap
+* Providing a way to pass sensitive information to the Pod
+* used to store sensitive information like password, token, SSH Keys
+* backed by in-memory file system
+
+
+Volume Types - downwardAPI
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* It's a way container can learn about their pod environment.
+
+
+Example: Create pod with NFS volume
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* When pod is deleted, NFS volume will be deleted, but the data isn't erased. It's just unmounted.
+
+.. image:: ./images/gcp_k8s_workload/create_pod_with_nfs_volume_manifest.png
+
+.. image:: ./images/gcp_k8s_workload/create_pod_with_nfs_volume.png
+
+
+More about Secret and ConfigMap
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* While Secret and ConfigMap volumes attached to individual Pods are ephemeral, the objects are not.
+
+.. image:: ./images/gcp_k8s_workload/secret_configmap_ephemeral.png
+
+
+Createing and Using a Compute Engine Persistent Disk
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Persistent Volume must be created before used by Pod
+
+.. code-block:: bash
+
+  gcloud compute disks create --size=100GB --zone=us-central1-a demo-disk
+
+
+Pod Manifest to use Compute Engine Persistent Dis
+
+.. image:: ./images/gcp_k8s_workload/secret_configmap_ephemeral.png
+
+
+PersistentVolume Abstraction
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/persistent_volume_two_components.png
+
+* Pod Level Volume
+* Cluster Level PersistentVolumes
+
+
+PersistentVolume AccessMode
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* ReadWriteOnce ( mount to a single node )
+* ReadOnlyMany ( mount to many nodes )
+* ReadWriteMany ( GCP persistent disk doesn't support. NFS does support )
+
+.. image:: ./images/gcp_k8s_workload/pod_pv_claim.png
+
+What if there isn't the claimed persistent volume? K8s will create one dynamically only if Dynamic Provisioning is enabled.
+
+
+Regional Persistent Disks
+>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Replicates data between two zones in the same region
+
+.. image:: ./images/gcp_k8s_workload/regional_pv.png
+
+
+
+StatefulSet
+-----------
+
+* useful for stateful application
+* run and maintain a set of pods just like deployments do.
+* defined a desired state and its controller achive it.
+* unlike deployments, StatefulSet maintains a persistent identity for each pod.
+
+.. image:: ./images/gcp_k8s_workload/statefulset_persistent_identity.png
+
+
+What is Ordinal Index?
+>>>>>>>>>>>>>>>>>>>>>>
+
+* Unique sequential number assigned to each pod in the StatefulSet.
+* This number defines pod's position in the sets sequence of pods.
+
+.. image:: ./images/gcp_k8s_workload/statefulset_ordinal_index.png
+
+
+Characteristics of StatefulSet
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+.. image:: ./images/gcp_k8s_workload/statefulset_characteristics.png
+
+
+StatefulSet Example
+>>>>>>>>>>>>>>>>>>>
+
+StatefulSet requires a service to control their networking.
+
+If not wanting or no need load-balancing and a single service IP.
+In this case, a **headless** service can be created by specifying **none** for **ClusterIP**
+in service definition.
+
+.. image:: ./images/gcp_k8s_workload/statefulset_example1.png
+
+
+Label selector is required for the service and this must match the template labels defined in
+the template section of the StatefulSet definition.
+
+.. image:: ./images/gcp_k8s_workload/statefulset_example2.png
+
+
+Define container details including `containerPort` and `volumeMounts`
+
+.. image:: ./images/gcp_k8s_workload/statefulset_example3.png
+
+
+volumeClaimTemplates are specified under template section.
+
+.. image:: ./images/gcp_k8s_workload/statefulset_example3.png
+
+
+
+ConfigMaps
+----------
+
+How to refer ConfigMaps from Pod?
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* As a container environment variable
+* In Pod commands
+* By creating a Volume
+
+.. image:: ./images/gcp_k8s_workload/configmap_cotainer_envvar.png
+
+.. image:: ./images/gcp_k8s_workload/configmap_pod_cmmand.png
+
+
+Each Node Kubelet periodically syncs with ConfigMap to keep ConfigMap volume updated. ( eventually updated. )
+
+.. image:: ./images/gcp_k8s_workload/configmap_create_volume.png
+
+
+
+Secrets
+-------
+
+Type of Secrets
+>>>>>>>>>>>>>>>
+
+* Generic
+* TLS
+* Docker Registry
+
+
+How to refer ConfigMaps from Pod?
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* As a container environment variable
+* By creating a Volume in Pod ( mounted container as readonly )
+
+
+
+Practice: Working with Kubernetes Engine Secrets and ConfigMaps
+---------------------------------------------------------------
+
+In this task, you authenticate containers with Google Cloud Platform (GCP) in order to access GCP services.
+You set up a Cloud Pub/Sub topic and subscription, try to access the Cloud Pub/Sub topic from a container running in GKE,
+and see that the access request fails. To properly access the pub/sub topic,
+you create a service account with credentials, and pass those credentials through Kubernetes Secrets.
+
+
+Task1: Work with Secret
+>>>>>>>>>>>>>>>>>>>>>>>
+
+1. Creat service account with name, `no-permissions`
+
+2. preparation
+
+.. code-block:: bash
+
+  export my_zone=us-central1-a
+  export my_cluster=standard-cluster-1
+  source <(kubectl completion bash)
+
+  # export my_service_account=[MY-SERVICE-ACCOUNT-EMAIL]
+  export my_service_account=no-permissions@qwiklabs-gcp-00-c1daf4e873d4.iam.gserviceaccount.com
+
+  gcloud container clusters create $my_cluster \
+  --num-nodes 3 --zone $my_zone \
+  --service-account=$my_service_account
+
+  gcloud container clusters get-credentials $my_cluster --zone $my_zone
+
+
+3. Set up Cloud Pub/Sub and deploy an application to read from the topic
+
+.. code-block:: bash
+
+  export my_pubsub_topic=echo
+  export my_pubsub_subscription=echo-read
+
+  gcloud pubsub topics create $my_pubsub_topic
+  gcloud pubsub subscriptions create $my_pubsub_subscription \
+  --topic=$my_pubsub_topic
+
+
+4. Deploy an application to read from Cloud Pub/Sub topics.
+
+  You create a deployment with a container that can read from Cloud Pub/Sub topics.
+  Since specific permissions are required to subscribe to, and read from,
+  Cloud Pub/Sub topics this container needs to be provided with credentials in order to successfully connect to Cloud Pub/Sub.
+
+
+.. code-block:: bash
+
+  git clone https://github.com/GoogleCloudPlatformTraining/training-data-analyst
+  cd ~/training-data-analyst/courses/ak8s/13_Secrets/
+
+  $ cat pubsub.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: pubsub
+  spec:
+    selector:
+      matchLabels:
+        app: pubsub
+    template:
+      metadata:
+        labels:
+          app: pubsub
+      spec:
+        containers:
+        - name: subscriber
+          image: gcr.io/google-samples/pubsub-sample:v1
+
+
+  $ kubectl apply -f pubsub.yaml
+
+  $ kubectl get pods -l app=pubsub
+  NAME                     READY   STATUS             RESTARTS   AGE
+  pubsub-8f78b6648-gkhc2   0/1     CrashLoopBackOff   1          30s
+  $ kubectl get pods -l app=pubsub
+  NAME                     READY   STATUS   RESTARTS   AGE
+  pubsub-8f78b6648-gkhc2   0/1     Error    2          31s
+
+  # Failed due to permission issue.
+  $ kubectl logs -l app=pubsub
+      return self._pull(request, options)
+    File "/usr/local/lib/python3.6/site-packages/google/gax/api_callable.py", line 452, in inner
+      return api_caller(api_call, this_settings, request)
+    File "/usr/local/lib/python3.6/site-packages/google/gax/api_callable.py", line 438, in base_caller
+      return api_call(*args)
+    File "/usr/local/lib/python3.6/site-packages/google/gax/api_callable.py", line 376, in inner
+      return a_func(*args, **kwargs)
+    File "/usr/local/lib/python3.6/site-packages/google/gax/retry.py", line 127, in inner
+      ' classified as transient', exception)
+  google.gax.errors.RetryError: RetryError(Exception occurred in retry method that was not classified as transient, caused by <_Rendezvous of RPC that ter
+  minated with (StatusCode.PERMISSION_DENIED, User not authorized to perform this action.)>)
+
+
+5. Create service account credentials
+
+  You will now create a new service account and grant it access to the pub/sub subscription
+  that the test application is attempting to use. Instead of changing the service account of the GKE cluster nodes,
+  you will generate a JSON key for the service account, and then securely pass the JSON key to the Pod via Kubernetes Secrets.
+
+
+  Create service account
+    * name `pubsub-app`
+    * Role, `Pub/Sub Subscriber`
+    * JSON key
+
+  Upload service account JSON key and rename to `credentials.json`
+
+
+6. Save the `credentials.json` key file to a Kubernetes Secret named `pubsub-key`
+
+.. code-block:: bash
+
+  $ kubectl create secret generic pubsub-key \
+  --from-file=key.json=$HOME/credentials.json
+
+  $ kubectl get secret
+  NAME                  TYPE                                  DATA   AGE
+  default-token-l76mg   kubernetes.io/service-account-token   3      11m
+  pubsub-key            Opaque                                1      8s
+
+  $ kubectl describe secrets pubsub-key
+  Name:         pubsub-key
+  Namespace:    default
+  Labels:       <none>
+  Annotations:  <none>
+
+  Type:  Opaque
+
+  Data
+  ====
+  key.json:  2359 bytes
+
+
+7. Configure the application with the secret
+
+  You now update the deployment to include the following changes:
+
+  * Add a volume to the Pod specification. This volume contains the secret.
+  * The secrets volume is mounted in the application container.
+  * The `GOOGLE_APPLICATION_CREDENTIALS` environment variable is set to point to the key file in the secret volume mount.
+
+
+.. code-block:: bash
+
+  $ cat pubsub-secret.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: pubsub
+  spec:
+    selector:
+      matchLabels:
+        app: pubsub
+    template:
+      metadata:
+        labels:
+          app: pubsub
+      spec:
+        volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: pubsub-key
+        containers:
+        - name: subscriber
+          image: gcr.io/google-samples/pubsub-sample:v1
+          volumeMounts:
+          - name: google-cloud-key
+            mountPath: /var/secrets/google
+          env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/secrets/google/key.json
+
+  $ kubectl apply -f pubsub-secret.yaml
+
+  # pod is running
+  $ kubectl get pods -l app=pubsub
+  NAME                      READY   STATUS    RESTARTS   AGE
+  pubsub-54f64df978-bm5zg   1/1     Running   0          26s
+
+
+8. Test receiving Cloud Pub/Sub messages
+
+.. code-block:: bash
+
+  $ gcloud pubsub topics publish $my_pubsub_topic --message="Hello, world!"
+  messageIds:
+  - '794012881076452'
+
+  $ kubectl logs -l app=pubsub
+  Pulling messages from Pub/Sub subscription...
+  [2019-10-19 23:47:54.277680] Received message: ID=794012881076452 Data=b'Hello, world!'
+  [2019-10-19 23:47:54.277738] Processing: 794012881076452
+  [2019-10-19 23:47:57.280465] Processed: 794012881076452
+
+
+Task 2. Work with ConfigMaps
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+ConfigMaps bind configuration files, command-line arguments, environment variables, port numbers,
+and other configuration artifacts to your Pods' containers and system components at runtime.
+ConfigMaps enable you to separate your configurations from your Pods and components.
+But ConfigMaps aren't encrypted, making them inappropriate for credentials.
+This is the difference between secrets and ConfigMaps: secrets are encrypted
+and are therefore better suited for confidential or sensitive information such as credentials.
+ConfigMaps are better suited for general configuration information such as port numbers.
+
+
+1. Use the kubectl command to create ConfigMaps
+
+.. code-block:: bash
+
+  $ kubectl create configmap sample --from-literal=message=hello
+
+  $ kubectl create configmap sample --from-literal=message=hello
+  configmap/sample created
+  $ kubectl describe configmaps sample
+  Name:         sample
+  Namespace:    default
+  Labels:       <none>
+  Annotations:  <none>
+
+  Data
+  ====
+  message:
+  ----
+  hello
+  Events:  <none>
+
+
+2. Create ConfigMap from file
+
+.. code-block:: bash
+
+  $ cat sample2.properties
+  message2=world
+  foo=bar
+  meaningOfLife=42
+
+  $ kubectl create configmap sample2 --from-file=sample2.properties
+  configmap/sample2 created
+  $ kubectl create configmap sample2 --from-file=sample2.properties
+  Error from server (AlreadyExists): configmaps "sample2" already exists
+
+  $ kubectl describe configmaps sample2
+  Name:         sample2
+  Namespace:    default
+  Labels:       <none>
+  Annotations:  <none>
+
+  Data
+  ====
+  sample2.properties:
+  ----
+  message2=world
+  foo=bar
+  meaningOfLife=42
+
+  Events:  <none>
+
+
+3. Use manifest files to create ConfigMaps
+
+.. code-block:: bash
+
+  $ cat config-map-3.yaml
+  apiVersion: v1
+  data:
+    airspeed: africanOrEuropean
+    meme: testAllTheThings
+  kind: ConfigMap
+  metadata:
+    name: sample3
+    namespace: default
+    selfLink: /api/v1/namespaces/default/configmaps/sample3
+
+  $ kubectl apply -f config-map-3.yaml
+  configmap/sample3 created
+
+  $ kubectl describe configmaps sample3
+  Name:         sample3
+  Namespace:    default
+  Labels:       <none>
+  Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                  {"apiVersion":"v1","data":{"airspeed":"africanOrEuropean","meme":"testAllTheThings"},"kind":"ConfigMap","metadata":{"annotations":{},"name...
+
+  Data
+  ====
+  airspeed:
+  ----
+  africanOrEuropean
+  meme:
+  ----
+  testAllTheThings
+  Events:  <none>
+
+
+4. Use environment variables to consume ConfigMaps in containers
+
+In order to access ConfigMaps from inside Containers using environment variables
+the Pod definition must be updated to include one or more configMapKeyRefs.
+The file pubsub-configmap.yaml is an updated version of the Cloud Pub/Sub demo Deployment
+that includes the following additional env: setting at the end of the file
+to import environmental variables from the ConfigMap into the container.
+
+
+.. code-block:: bash
+
+  $ cat pubsub-configmap.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: pubsub
+  spec:
+    selector:
+      matchLabels:
+        app: pubsub
+    template:
+      metadata:
+        labels:
+          app: pubsub
+      spec:
+        volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: pubsub-key
+        containers:
+        - name: subscriber
+          image: gcr.io/google-samples/pubsub-sample:v1
+          volumeMounts:
+          - name: google-cloud-key
+            mountPath: /var/secrets/google
+          env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/secrets/google/key.json
+          - name: INSIGHTS
+            valueFrom:
+              configMapKeyRef:
+                name: sample3
+                key: meme
+
+  $ kubectl apply -f pubsub-configmap.yaml
+
+  $ kubectl get pods
+  NAME                     READY   STATUS    RESTARTS   AGE
+  pubsub-c498d5cbb-9npjd   1/1     Running   0          79s
+
+  $ kubectl exec -it pubsub-c498d5cbb-9npjd -- sh
+
+  # in container
+  $ printenv
+  KUBERNETES_SERVICE_PORT=443
+  KUBERNETES_PORT=tcp://10.11.240.1:443
+  HOSTNAME=pubsub-c498d5cbb-9npjd
+  PYTHON_PIP_VERSION=10.0.1
+  HOME=/root
+  GPG_KEY=0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
+  GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/key.json
+  TERM=xterm
+  KUBERNETES_PORT_443_TCP_ADDR=10.11.240.1
+  PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  KUBERNETES_PORT_443_TCP_PORT=443
+  KUBERNETES_PORT_443_TCP_PROTO=tcp
+  LANG=C.UTF-8
+  PYTHON_VERSION=3.6.5
+  INSIGHTS=testAllTheThings
+  KUBERNETES_SERVICE_PORT_HTTPS=443
+  KUBERNETES_PORT_443_TCP=tcp://10.11.240.1:443
+  KUBERNETES_SERVICE_HOST=10.11.240.1
+  PWD=/
+
+
+5. Use mounted volumes to consume ConfigMaps in containers
+
+  In this Deployment the ConfigMap named sample-3
+  that you created earlier in this task is also added as a volume called config-3 in the Pod spec.
+  The config-3 volume is then mounted inside the container on the path /etc/config.
+  The original method using Environment variables to import ConfigMaps is also configured.
+
+
+.. code-block:: bash
+
+  $ cat pubsub-configmap2.yaml
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: pubsub
+  spec:
+    selector:
+      matchLabels:
+        app: pubsub
+    template:
+      metadata:
+        labels:
+          app: pubsub
+      spec:
+        volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: pubsub-key
+        - name: config-3
+          configMap:
+            name: sample3
+        containers:
+        - name: subscriber
+          image: gcr.io/google-samples/pubsub-sample:v1
+          volumeMounts:
+          - name: google-cloud-key
+            mountPath: /var/secrets/google
+          - name: config-3
+            mountPath: /etc/config
+          env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/secrets/google/key.json
+          - name: INSIGHTS
+            valueFrom:
+              configMapKeyRef:
+                name: sample3
+                key: meme
+
+  $ kubectl apply -f pubsub-configmap2.yaml
+
+  $ kubectl get pods
+  NAME                     READY   STATUS        RESTARTS   AGE
+  pubsub-b48dff9b9-hpwqj   1/1     Running       0          14s
+  pubsub-c498d5cbb-9npjd   1/1     Terminating   0          5m5s
+
+  $ kubectl exec -it pubsub-b48dff9b9-hpwqj -- sh
+  # cd /etc/config
+  # ls -al
+  total 12
+  drwxrwxrwx 3 root root 4096 Oct 20 00:02 .
+  drwxr-xr-x 1 root root 4096 Oct 20 00:02 ..
+  drwxr-xr-x 2 root root 4096 Oct 20 00:02 ..2019_10_20_00_02_07.596447894
+  lrwxrwxrwx 1 root root   31 Oct 20 00:02 ..data -> ..2019_10_20_00_02_07.596447894
+  lrwxrwxrwx 1 root root   15 Oct 20 00:02 airspeed -> ..data/airspeed
+  lrwxrwxrwx 1 root root   11 Oct 20 00:02 meme -> ..data/meme
