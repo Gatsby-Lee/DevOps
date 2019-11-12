@@ -410,6 +410,11 @@ Practice: Securing Kubernetes Engine with Cloud IAM and Pod Security Policies
 Task 1: Use Cloud IAM roles to grant administrative access to all the GKE clusters in the project
 -------------------------------------------------------------------------------------------------
 
+Adding Kubernetes Cluster
+
+
+.. image:: ./images/gcp_k8s_production/iam_add_user_into_serviceaccount.png
+
 * IAM & admin > Service accounts
 * Show Info Panel, click Add Member
 * Type the username for Username 2 into the New members box
