@@ -12,8 +12,7 @@ In Kubernetes, there are two main types of user
   * manged ouside of Kubernetes
   * Kubernetes relies on external identity services.
   * G Suite domain or Google Cloud identity domain.
-  Google Cloud identity domain gives much more organizational control than
-  using consumer Google accounts for all of employees.
+  * Google Cloud identity domain gives much more organizational control than using consumer Google accounts for all of employees.
 
 * Service accounts: mananged by Kubernetes
 
@@ -679,7 +678,7 @@ Note:
 
 
 Complete the credential and IP rotation tasks
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+"""""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: bash
 
@@ -903,6 +902,7 @@ Create resource on production namespace
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 .. code-block:: bash
+
   # This will fail since user2 doesn't have correct permission.
   kubectl apply -f ./production-pod.yaml
 
@@ -940,8 +940,8 @@ the permission to create Pods in the production namespace:
 Test on User2 - create resource
 """""""""""""""""""""""""""""""
 
-Create resource on production namespace
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Create resource on production namespace.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 .. code-block:: bash
 
@@ -953,6 +953,7 @@ Delete resource on production namespace
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 This fails because Username 2 does not have the delete permission for Pods.
+
 
 .. code-block:: bash
 
@@ -967,8 +968,8 @@ Practice: Configuring Kubernetes Engine Logging and Monitoring
 Task 1. Getting ready for monitoring with Stackdriver
 -----------------------------------------------------
 
-Create GKE Cluster
-""""""""""""""""""
+Create GKE Cluster.
+"""""""""""""""""""
 
 .. code-block:: bash
 
@@ -1011,8 +1012,8 @@ and then deletes it 30 seconds later to simulate an outage that the Liveness pro
 Create pod with liveness
 """"""""""""""""""""""""
 
-prepare sample code
->>>>>>>>>>>>>>>>>>>
+prepare sample code.
+>>>>>>>>>>>>>>>>>>>>
 
 .. code-block:: bash
 
@@ -1140,8 +1141,8 @@ Create cluster
   gcloud container clusters get-credentials $my_cluster --zone $my_zone
 
 
-Setup sample code
------------------
+Setup sample code.
+------------------
 
 .. code-block:: bash
 
