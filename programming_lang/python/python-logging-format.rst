@@ -17,4 +17,4 @@ basicConfig
 .. code-block:: python
 
   FORMAT = '%(asctime)s (%(filename)s, %(funcName)s, %(lineno)d) [%(levelname)8s] %(message)s'
-  logging.basicConfig(level=logging.INFO, format=FORMAT)
+  logging.basicConfig(level=logging.INFO, format=FORMAT, datefmt='%Y-%m-%d %H:%M:%S')
