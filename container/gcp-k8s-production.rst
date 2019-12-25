@@ -531,7 +531,7 @@ replacing [USERNAME_1_EMAIL] with the email address of the Username 1 account:
 create the ClusterRole with access to the security policy
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-.. code-block::
+.. code-block:: bash
 
   $ cat psp-cluster-role.yaml
   kind: ClusterRole
