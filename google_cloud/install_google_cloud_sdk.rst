@@ -6,6 +6,7 @@ Red Hat / CentOS
 
 * ref: https://cloud.google.com/sdk/docs/downloads-yum
 
+
 1. Setup YUM repo file
 ----------------------
 
