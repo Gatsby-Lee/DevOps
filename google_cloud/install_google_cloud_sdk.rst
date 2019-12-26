@@ -31,3 +31,18 @@ Red Hat / CentOS
 
     dnf install google-cloud-sdk
 
+
+MacOS
+=====
+
+* ref: https://cloud.google.com/sdk/docs/quickstart-macos
+
+
+1. Donwload tar.gz file
+2. Unzip
+3. Install / Init
+
+.. code-block:: bash
+
+    ./google-cloud-sdk/install.sh
+    gcloud init
