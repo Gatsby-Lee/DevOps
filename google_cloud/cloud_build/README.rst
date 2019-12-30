@@ -50,3 +50,9 @@ Build methods
 .. image:: ./images/method3_k8s_single_node.png
 
 .. image:: ./images/ci_testing_of_microservices.png
+
+
+cloudbuild-integration-testing
+------------------------------
+
+* https://github.com/GoogleCloudPlatform/cloudbuild-integration-testing
