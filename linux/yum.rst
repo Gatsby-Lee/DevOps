@@ -59,7 +59,7 @@ Install yum plugin
 Add packages to versionlock
 ---------------------------
 
-.. code-blcok:: bash
+.. code-block:: bash
 
     # It's possible directly to add into /etc/yum/pluginconf.d/versionlock.list
     $ yum versionlock add java-1.8.0-openjdk
