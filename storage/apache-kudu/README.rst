@@ -22,3 +22,4 @@ References
 -----------
 * https://kudu.apache.org/docs/command_line_tools_reference.html
 * https://kudu.apache.org/docs/configuration_reference.html
+* https://kudu.apache.org/docs/troubleshooting.html#ntp
