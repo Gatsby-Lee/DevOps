@@ -20,3 +20,13 @@ yum --showduplicates list java-1.8.0-openjdk
     java-1.8.0-openjdk.x86_64                                                                                         1:1.8.0.212.b04-0.el6_10                                                                                          updates
     java-1.8.0-openjdk.x86_64                                                                                         1:1.8.0.222.b10-0.el6_10                                                                                          updates
     java-1.8.0-openjdk.x86_64                                                                                         1:1.8.0.232.b09-1.el6_10                                                                                          updates
+
+
+Install specific version
+========================
+
+ref: https://unix.stackexchange.com/questions/189020/how-can-i-instruct-yum-to-install-a-specifc-version-of-openjdk
+
+.. code-block:: bash
+
+    yum install java-1.8.0-openjdk-1:1.8.0.181-3.b13.el6_10
