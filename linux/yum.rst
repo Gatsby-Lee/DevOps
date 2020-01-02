@@ -30,3 +30,67 @@ ref: https://unix.stackexchange.com/questions/189020/how-can-i-instruct-yum-to-i
 .. code-block:: bash
 
     yum install java-1.8.0-openjdk-1:1.8.0.181-3.b13.el6_10
+
+
+Downgrade to specific version
+=============================
+
+If RPM is in repo.
+
+.. code-block:: bash
+
+    yum downgrade java-1.8.0-openjdk-1.8.0.181-3.b13.el6_10.x86_64 java-1.8.0-openjdk-headless-1.8.0.181-3.b13.el6_10.x86_64
+
+
+Restrict package to be upgraded
+===============================
+
+* ref: https://access.redhat.com/solutions/98873
+
+
+Install yum plugin
+------------------
+
+.. code-block:: bash
+
+    yum install yum-plugin-versionlock
+
+
+Add packages to versionlock
+---------------------------
+
+.. code-blcok:: bash
+
+    # It's possible directly to add into /etc/yum/pluginconf.d/versionlock.list
+    $ yum versionlock add java-1.8.0-openjdk
+    $ yum versionlock add java-1.8.0-openjdk-headless
+
+    # Check list in versionlock
+    $ yum versionlock list
+    Loaded plugins: fastestmirror, versionlock
+    1:java-1.8.0-openjdk-1.8.0.181-3.b13.el6_10.*
+    1:java-1.8.0-openjdk-headless-1.8.0.181-3.b13.el6_10.*
+    versionlock list done
+
+    # Try to upgrade to confirm
+    $ yum update java-1.8.0-openjdk
+    Loaded plugins: fastestmirror, versionlock
+    Setting up Update Process
+    Loading mirror speeds from cached hostfile
+    No Packages marked for Update
+
+
+Delete packages from versionlock
+--------------------------------
+
+.. code-block:: bash
+
+    $ yum versionlock delete 1:java-1.8.0-openjdk-1.8.0.181-3.b13.el6_10.*
+    Loaded plugins: fastestmirror, versionlock
+    Deleting versionlock for: 1:java-1.8.0-openjdk-1.8.0.181-3.b13.el6_10.*
+    versionlock deleted: 1
+
+    $ yum versionlock list
+    Loaded plugins: fastestmirror, versionlock
+    1:java-1.8.0-openjdk-headless-1.8.0.181-3.b13.el6_10.*
+    versionlock list done
