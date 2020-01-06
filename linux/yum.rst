@@ -94,3 +94,16 @@ Delete packages from versionlock
     Loaded plugins: fastestmirror, versionlock
     1:java-1.8.0-openjdk-headless-1.8.0.181-3.b13.el6_10.*
     versionlock list done
+
+
+Export installed package with CSV format
+========================================
+
+https://stackoverflow.com/questions/104055/how-to-list-the-contents-of-a-package-using-yum
+
+.. code-block:: bash
+
+  # print all supported query tags
+  rpm --querytags
+  # print installed packages
+  rpm -qa --queryformat "%{NAME}.%{ARCH},%{VERSION}-%{RELEASE},%{VENDOR}\n" | sort -t\; -k 1
