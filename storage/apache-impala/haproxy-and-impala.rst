@@ -16,7 +16,7 @@ Setup HAProxy to use `httpchk` to check health of server with port 9200
 
 .. code-block:: conf
 
-    listen hadoop5_impala_coordinators
+    listen impala_coordinators
         bind *:30000
         balance first
         option httpchk
