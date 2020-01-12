@@ -5,6 +5,7 @@ Summary
 =======
 
 * Impala Dedicated Coordinator
+* Impala Coordinator needs checked if ready to take query ( check catalog loading status )
 * High Availablity and Load Balancing ( HAProxy )
 * xinetd
 
