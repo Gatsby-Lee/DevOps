@@ -17,10 +17,10 @@ Summary
     * ResourceManager will send kill SIGNAL to hadoop-yarn-nodemanager
     * hadoop-yarn-nodemanager will die.
 
-* To recommision, remove hostname from `yarn.exclude`
+* To recommission, remove hostname from `yarn.exclude`
 * yarn rmadmin -refreshNodes -g -client
 
-    * NodesListManager refresh its list.
+  * NodesListManager refresh its list.
 
 * Start hadoop-yarn-nodemanager
 
@@ -78,10 +78,9 @@ decommissioning yarn node
 recommissioning decommissioned yarn node
 ----------------------------------------
 
-* NOTE: on decommissioned node `hadoop-yarn-nodemanager` will die again if restarted without
-notifying NodesListManager to update its exclude/include host list
+* NOTE: on decommissioned node `hadoop-yarn-nodemanager` will die again if restarted without notifying NodesListManager to update its exclude/include host list
 
-1. remove host from `/etc/hadoop/conf/yarn.exclude`
+1. remove (or comment) hostname from `/etc/hadoop/conf/yarn.exclude`
 2. execute yarn command to refresh NodesListManager
 
 .. code-block:: bash
