@@ -1,6 +1,11 @@
 Setup 6TB Disk
 ##############
 
+References
+----------
+
+* https://www.cyberciti.biz/tips/fdisk-unable-to-create-partition-greater-2tb.html
+
 * new 6TB Toshiba disk
 * has to use parted
 * has to change label
