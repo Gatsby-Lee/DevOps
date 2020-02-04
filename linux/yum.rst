@@ -29,6 +29,8 @@ ref: https://unix.stackexchange.com/questions/189020/how-can-i-instruct-yum-to-i
 
 .. code-block:: bash
 
+    # the pkg name can be different depending on repo
+    # therefore, if the yum fails to find it, then check repo and get filename.
     yum install java-1.8.0-openjdk-1:1.8.0.181-3.b13.el6_10
 
 
