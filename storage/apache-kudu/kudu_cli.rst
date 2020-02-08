@@ -2,7 +2,7 @@ Kudo CLI
 ########
 
 List / Remove / Describe tables
-===========
+===============================
 
 .. code-block:: bash
 
