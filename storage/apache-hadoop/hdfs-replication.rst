@@ -21,3 +21,20 @@ hdfs-site.xml
 * dfs.namenode.replication.work.multiplier.per.iteration
 * dfs.namenode.replication.max-streams
 * dfs.namenode.replication.max-streams-hard-limit
+
+.. code-block:
+
+  # namenode has to restart
+
+  <property>
+    <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
+    <value>100</value>
+  </property>
+  <property>
+    <name>dfs.namenode.replication.max-streams</name>
+    <value>100</value>
+  </property>
+  <property>
+    <name>dfs.namenode.replication.max-streams-hard-limit</name>
+    <value>150</value>
+  </property>
