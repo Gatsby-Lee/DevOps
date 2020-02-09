@@ -1,6 +1,9 @@
 ORC compression in CDH
 ######################
 
+ORC Compression in CDH 5.16.2
+=============================
+
 .. code-block: bash
 
     # Original
@@ -22,3 +25,10 @@ ORC compression in CDH
     SET orc.compress=SNAPPY;
     hive> dfs -du -s -h /user/hive/external_warehouse/sample_201912_orc_0;
     99.3 G  297.9 G  /user/hive/external_warehouse/sample_201912_orc_0
+
+
+ORC File Format
+===============
+
+* https://cwiki.apache.org/confluence/display/Hive/LanguageManual+ORC
+* https://towardsdatascience.com/new-in-hadoop-you-should-know-the-various-file-format-in-hadoop-4fcdfa25d42b
