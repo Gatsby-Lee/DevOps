@@ -7,7 +7,7 @@ HDFS Replication
 cmd to save namespace
 =====================
 
-.. code-block: bash
+.. code-block:: bash
 
     sudo -u hdfs hdfs dfsadmin -safemode enter
     sudo -u hdfs hdfs dfsadmin -safemode get
@@ -22,10 +22,9 @@ hdfs-site.xml
 * dfs.namenode.replication.max-streams
 * dfs.namenode.replication.max-streams-hard-limit
 
-.. code-block:
+.. code-block:: xml
 
   # namenode has to restart
-
   <property>
     <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
     <value>100</value>
