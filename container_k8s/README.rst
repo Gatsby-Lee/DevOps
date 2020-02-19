@@ -20,3 +20,13 @@ Both CMD and ENTRYPOINT instructions define what command gets executed when runn
 4. CMD will be overridden when running the container with alternative arguments.
 
 5. The table below shows what command is executed for different ENTRYPOINT / CMD combinations:
+
+
+Some commands
+=============
+
+* Clean up all stopped containers
+
+.. code-block:: bash
+
+    docker container rm $(docker container ls -aq)
