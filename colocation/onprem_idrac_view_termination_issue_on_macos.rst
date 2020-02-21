@@ -16,7 +16,7 @@ Summary
 so the used TLS algorithms on MacOS was not compatible with the one iDARC uses.
 
 
-* Disable SSLv3
+* Removing all SSLv3 / RC4 / RC4_
 
   * vim /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/lib/security/java.security
   * /Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/bin/java -version
