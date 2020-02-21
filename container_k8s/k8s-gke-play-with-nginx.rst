@@ -15,6 +15,17 @@ Create GKE cluster
   webfrontend  us-central1-f  1.12.8-gke.10   35.224.242.230  n1-standard-1  1.12.8-gke.10  2          RUNNING
 
 
+In case kubectl doesn't work
+----------------------------
+
+It might be related to kubectl credential. https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl
+
+.. code-block:: bash
+
+  gcloud container clusters get-credentials <cluster_name>
+
+
+
 Run nginx container
 -------------------
 
