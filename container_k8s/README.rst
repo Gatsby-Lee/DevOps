@@ -30,3 +30,13 @@ Some commands
 .. code-block:: bash
 
     docker container rm $(docker container ls -aq)
+
+
+kubectl
+=======
+
+* https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl
+
+.. code-block:: bash
+
+  gcloud container clusters get-credentials <cluster_name>
