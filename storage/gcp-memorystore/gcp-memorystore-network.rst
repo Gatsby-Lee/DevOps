@@ -16,7 +16,7 @@ Regardless connection mode, Memorystore instance will use Internal IP AND use /2
 Check used connection mode
 ==========================
 
-..code-block:: bash
+.. code-block:: bash
 
     $ gcloud redis instances describe test-ms --region us-east1
     alternativeLocationId: us-east1-b
@@ -47,6 +47,8 @@ direct peering
 * Other Google Cloud services do not share the peering.
 * Memorystore for Redis used the direct peering connection mode before the availability of the private services access connection mode.
 * By default, new instances are created using the direct peering connection mode.
+
+.. image:: ./images/gcp-memorystore-direct-peering.png
 
 
 private services access
@@ -84,3 +86,4 @@ private services access
 
 * this can be shared for Google managed service requiring Internal IP ( VPC peering )
 
+.. image:: ./images/gcp-memorystore-private-services-access.png
