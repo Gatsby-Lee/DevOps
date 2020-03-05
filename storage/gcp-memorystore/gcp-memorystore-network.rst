@@ -57,6 +57,8 @@ private services access
 * you MUST first Establish a private services access connection for your VPC network.
 * Establishing a private services access connection for a VPC network creates a peering between that `VPC network` and the `Google services network`.
 ( VPC Network and Google services network is ONE-TO-ONE mapping )
+* ref: https://cloud.google.com/memorystore/docs/redis/creating-managing-instances#creating_a_redis_instance_with_a_centralized_ip_address_range
+
 
 .. code-block:: bash
 
@@ -84,6 +86,10 @@ private services access
 private services access
 =======================
 
-* this can be shared for Google managed service requiring Internal IP ( VPC peering )
+Using private services access enables you to use the following capabilities for your Redis instance:
+
+* Provision a Memorystore for Redis instance in a service project using Shared VPC.
+* Centrally manage IP address ranges across multiple Google services. - this can be shared for Google managed service requiring Internal IP ( VPC peering )
+* Connect from external sources to your VPC network over a VPN tunnel or Cloud Interconnect to your VPC network.
 
 .. image:: ./images/gcp-memorystore-private-services-access.png
