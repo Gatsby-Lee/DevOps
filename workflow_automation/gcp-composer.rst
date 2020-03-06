@@ -4,6 +4,8 @@ Google Composer
 Create composer environment
 ===========================
 
+* service-account has to have necessary permissions. ( https://cloud.google.com/composer/docs/how-to/access-control )
+
 .. code-block:: bash
 
     $ gcloud composer environments create blue-workflow \
