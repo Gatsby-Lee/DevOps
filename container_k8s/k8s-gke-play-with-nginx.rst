@@ -8,8 +8,8 @@ Create GKE cluster
 
   $ gcloud container clusters create webfrontend --zone "us-central1-f" --num-nodes 2
   Creating cluster webfrontend in us-central1-f... Cluster is being health-checked (master is healthy)...done.
-  Created [https://container.googleapis.com/v1/projects/brightedge-gcp-development2/zones/us-central1-f/clusters/webfrontend].
-  To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-central1-f/webfrontend?project=brightedge-gcp-development2
+  Created [https://container.googleapis.com/v1/projects/test-project/zones/us-central1-f/clusters/webfrontend].
+  To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-central1-f/webfrontend?project=test-project
   kubeconfig entry generated for webfrontend.
   NAME         LOCATION       MASTER_VERSION  MASTER_IP       MACHINE_TYPE   NODE_VERSION   NUM_NODES  STATUS
   webfrontend  us-central1-f  1.12.8-gke.10   35.224.242.230  n1-standard-1  1.12.8-gke.10  2          RUNNING
