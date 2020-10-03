@@ -1,11 +1,10 @@
-MemoryStore
-===========
-
-* Redis storage
+Google Cloud Memorystore
+########################
 
 Connect from AppEngine Flex
 ---------------------------
 * https://cloud.google.com/memorystore/docs/redis/connect-redis-instance-flex
+
 
 Redis Config
 ------------
