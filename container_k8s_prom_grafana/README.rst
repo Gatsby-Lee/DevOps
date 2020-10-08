@@ -81,17 +81,46 @@ Network
 
 ---------
 
-
-Container metric Calculation
-============================
+Container metric Calculation - General
+======================================
 
 Pod Age
 -------
-* ``container_start_time_seconds ( Gauge ):`` the value doesn't change although Pod is restarted.
-* multiple rows will be returned with different values for container like container="POD", container="", container="${pod_name}"
-* I pick container="POD" since I care about Pod Age
 
-``max(time()-container_start_time_seconds{pod=~"$pod_name-.*", container="POD"})by(pod)``
+* ``container_start_time_seconds ( Gauge ):``
+
+  * container="${pod_name}" is necessary.
+  * the value doesn't change although Pod is restarted.
+  * max .. by(pod): to aggregate - it doesn't really matter to use ``max`` or ``sum`` since only one row will be returned.
+
+``max(time()-container_start_time_seconds{pod=~"$pod_name-.*",container="$pod_name"})by(pod)``
+
+Pod restart counts
+------------------
+
+* ``kube_pod_container_status_restarts_total ( Counter, cumulative )``
+
+  * by default, return the last(latest) value
+  * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``, but prefer ``max``
+
+``max(kube_pod_container_status_restarts_total{pod=~"$pod_name-.*",container="$pod_name"})by(pod)``
+
+
+Container metric Calculation - CPU
+==================================
+
+CPU current Usage
+-----------------
+
+* ``container_cpu_usage_seconds_total ( Counter, cumulative )``
+
+  * container="${pod_name}" is necessary.
+  * `irate`: diff between the recent two data points ( [5m] )
+  * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
+  * time range the recent 5m
+  * x1000 to covert to mCPU
+
+``max(irate(container_cpu_usage_seconds_total{pod=~"$pod_name-.*",container="$pod_name"}[5m]))by(pod) * 1000``
 
 
 CPU Usage Percentage based on Limit
@@ -110,3 +139,64 @@ CPU Usage Percentage based on Limit
 
 ``max(irate(container_cpu_usage_seconds_total{pod=~"${pod_name}-.*",container="${pod_name}"}[5m]))by(pod) / max(kube_pod_container_resource_requests_cpu_cores{pod=~"${pod_name}-.*"})by(pod) * 100``
 
+
+Container metric Calculation - Memory
+=====================================
+
+* `container_memory_usage_bytes vs. container_memory_usage_bytes <https://blog.freshtracks.io/a-deep-dive-into-kubernetes-metrics-part-3-container-resource-metrics-361c5ee46e66>`_
+* ``container_memory_usage_bytes``: Current memory usage in bytes, including all memory regardless of when it was accessed.
+* ``container_memory_working_set_bytes``: Current working set in bytes. ( OOM killer is watching this )
+
+
+Memory Current Usage
+---------------------
+
+* ``container_memory_working_set_bytes ( Gauge )``
+
+  * container="${pod_name}" is necessary.
+  * max .. by(pod): to aggregate - it doesn't really matter to use ``max`` or ``sum`` since only one row will be returned.
+
+``max(container_memory_working_set_bytes{pod=~"$pod_name-.*",container="$pod_name"})by(pod)``
+
+
+Memory Usage Percentage based on Limit
+-----------------------------------
+  
+* ``container_memory_working_set_bytes ( Gauge )``
+
+  * container="${pod_name}" is necessary.
+  * max .. by(pod): to aggregate - it doesn't really matter to use ``max`` or ``sum`` since only one row will be returned.
+
+* ``container_spec_memory_limit_bytes ( Gauge )``
+
+  * container="${pod_name}" is necessary.
+  * Since it is from config, the value is not changed unless updated manually.
+  * max .. by(pod): to aggregate - it doesn't really matter to use ``max`` or ``sum`` since only one row will be returned.
+  
+``max(container_memory_working_set_bytes{pod=~"$pod_name-.*",container="$pod_name"})by(pod) / max(container_spec_memory_limit_bytes{pod=~"$pod_name-.*",container="$pod_name"})by(pod) * 100``
+
+
+Container metric Calculation - Network
+======================================
+
+Network Outbound Useage
+-----------------------
+
+* ``container_network_transmit_bytes_total ( Counter, Cumulative, bytes )``
+
+  * do not put container="${pod_name}"
+  * ``irate`` if Table with Instant
+  * ``rate`` if Graph
+
+``sum(irate(container_network_transmit_bytes_total{pod=~"$pod_name-.*"}[5m]))by(pod)``
+
+Network Inboud Useage
+---------------------
+
+* ``container_network_receive_bytes_total ( Counter, Cumulative, bytes )``
+
+  * do not put container="${pod_name}"
+  * ``irate`` if Table with Instant
+  * ``rate`` if Graph
+
+``sum(irate(container_network_receive_bytes_total{pod=~"$pod_name-.*"}[5m]))by(pod)``
