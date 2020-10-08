@@ -1,6 +1,47 @@
 K8s / Prometheus / Grafana
 ##########################
 
+References
+==========
+
+cAdvisor
+--------
+
+* https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md
+* https://docs.signalfx.com/en/latest/integrations/agent/monitors/cadvisor.html
+
+Prometheus
+----------
+
+* https://prometheus.io/docs/prometheus/latest/querying/basics/
+
+PromQL + cAdvisor
+-----------------
+
+* https://www.replex.io/blog/kubernetes-in-production-the-ultimate-guide-to-monitoring-resource-metrics
+
+
+Prometheus Metric Types
+=======================
+
+ref: https://prometheus.io/docs/concepts/metric_types/
+
+* Counter ( only increase or be reset to zero on restart ) - Cumulative
+* Gauge ( go up and down )
+* Histogram ( bucket / count )
+* Summary ( quantiles )
+
+
+Note: Duplicated cAdvisor output
+=======================
+
+ref: https://github.com/google/cadvisor/issues/2249
+
+* `container="":` for pod cgroup ( exposed by cAdvisor )
+* `container="POD"` for "pause" container for the pod. ( exposed by cAdvisor )
+* `container="${pod_name}"` for a specific container in Pod
+
+
 Metrics from cAdvisor
 ======================
 
@@ -52,4 +93,20 @@ Pod Age
 
 ``max(time()-container_start_time_seconds{pod=~"$pod_name-.*", container="POD"})by(pod)``
 
+
+CPU Usage Percentage based on Limit
+-----------------------------------
+
+* ``container_cpu_usage_seconds_total ( Counter ):``
+
+    * container="${pod_name}" is necessary.
+    * `irate`: diff between the recent two data points ( [5m] )
+    * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
+
+* ``kube_pod_container_resource_requests_cpu_cores`` container="${pod_name}" is NOT necessary.
+
+    * container="${pod_name}" is NOT necessary.
+    * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
+
+``max(irate(container_cpu_usage_seconds_total{pod=~"${pod_name}-.*",container="${pod_name}"}[5m]))by(pod) / max(kube_pod_container_resource_requests_cpu_cores{pod=~"${pod_name}-.*"})by(pod) * 100``
 
