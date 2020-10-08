@@ -97,13 +97,13 @@ Pod Age
 CPU Usage Percentage based on Limit
 -----------------------------------
 
-* ``container_cpu_usage_seconds_total ( Counter ):``
+* ``container_cpu_usage_seconds_total ( Counter )``
 
     * container="${pod_name}" is necessary.
     * `irate`: diff between the recent two data points ( [5m] )
     * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
 
-* ``kube_pod_container_resource_requests_cpu_cores`` container="${pod_name}" is NOT necessary.
+* ``kube_pod_container_resource_requests_cpu_cores``
 
     * container="${pod_name}" is NOT necessary.
     * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
