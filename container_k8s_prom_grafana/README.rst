@@ -47,7 +47,7 @@ Container metric Calculation
 Pod Age
 -------
 * ``container_start_time_seconds ( Gauge ):`` the value doesn't change although Pod is restarted.
-* multiple rows will be returned with different values of container like "POD", "", "${pod_name}"
+* multiple rows will be returned with different values for container like container="POD", container="", container="${pod_name}"
 * I pick container="POD" since I care about Pod Age
 
 ``max(time()-container_start_time_seconds{pod=~"$pod_name-.*", container="POD"})by(pod)``
