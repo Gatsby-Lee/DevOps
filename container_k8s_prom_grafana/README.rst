@@ -31,6 +31,17 @@ ref: https://prometheus.io/docs/concepts/metric_types/
 * Histogram ( bucket / count )
 * Summary ( quantiles )
 
+References for Prometheus functions - rate / irate / increase
+=============================================================
+
+* https://stackoverflow.com/questions/54494394/do-i-understand-prometheuss-rate-vs-increase-functions-correctly
+* https://github.com/prometheus/prometheus/issues/3746
+* https://www.metricfire.com/blog/understanding-the-prometheus-rate-function/
+
+References Prometheus Recording rules
+=====================================
+
+* https://deploy.live/blog/today-i-learned-prometheus-recording-rules/
 
 Note: Duplicated cAdvisor output
 =======================
@@ -123,21 +134,45 @@ CPU current Usage
 ``max(irate(container_cpu_usage_seconds_total{pod=~"$pod_name-.*",container="$pod_name"}[5m]))by(pod) * 1000``
 
 
-CPU Usage Percentage based on Limit
------------------------------------
+CPU Usage Percentage based on Request
+-------------------------------------
 
 * ``container_cpu_usage_seconds_total ( Counter )``
 
-    * container="${pod_name}" is necessary.
+    * container="$pod_name" is necessary.
     * `irate`: diff between the recent two data points ( [5m] )
     * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
 
 * ``kube_pod_container_resource_requests_cpu_cores``
 
-    * container="${pod_name}" is NOT necessary.
+    * container="$pod_name" is NOT necessary.
     * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
 
-``max(irate(container_cpu_usage_seconds_total{pod=~"${pod_name}-.*",container="${pod_name}"}[5m]))by(pod) / max(kube_pod_container_resource_requests_cpu_cores{pod=~"${pod_name}-.*"})by(pod) * 100``
+``max(irate(container_cpu_usage_seconds_total{pod=~"$pod_name-.*",container="$pod_name"}[5m]))by(pod) / max(kube_pod_container_resource_requests_cpu_cores{pod=~"$pod_name-.*"})by(pod) * 100``
+
+
+CPU Usage Percentage based on Limit
+-------------------------------------
+
+* ``container_cpu_usage_seconds_total ( Counter )``
+
+    * container="$pod_name" is necessary.
+    * `irate`: diff between the recent two data points ( [5m] )
+    * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
+
+* ``kube_pod_container_resource_limits_cpu_cores``
+
+    * container="$pod_name" is NOT necessary.
+    * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
+
+``max(irate(container_cpu_usage_seconds_total{pod=~"$pod_name-.*",container="$pod_name"}[5m]))by(pod) / max(kube_pod_container_resource_limits_cpu_cores{pod=~"$pod_name-.*"})by(pod) * 100``
+
+
+References about CPU
+--------------------
+
+* https://github.com/google/cadvisor/issues/2026
+
 
 
 Container metric Calculation - Memory
@@ -187,16 +222,19 @@ Network Outbound Useage
   * do not put container="${pod_name}"
   * ``irate`` if Table with Instant
   * ``rate`` if Graph
+  * max .. by(pod): to aggregate - it doesn't really matter to use ``max`` or ``sum`` since only one row will be returned.
 
-``sum(irate(container_network_transmit_bytes_total{pod=~"$pod_name-.*"}[5m]))by(pod)``
+``max(irate(container_network_transmit_bytes_total{pod=~"$pod_name-.*"}[5m]))by(pod)``
 
 Network Inboud Useage
 ---------------------
 
 * ``container_network_receive_bytes_total ( Counter, Cumulative, bytes )``
 
-  * do not put container="${pod_name}"
+  * do not put container="$pod_name"
   * ``irate`` if Table with Instant
   * ``rate`` if Graph
+  * max .. by(pod): to aggregate - it doesn't really matter to use ``max`` or ``sum`` since only one row will be returned.
 
-``sum(irate(container_network_receive_bytes_total{pod=~"$pod_name-.*"}[5m]))by(pod)``
+``max(irate(container_network_receive_bytes_total{pod=~"$pod_name-.*"}[5m]))by(pod)``
+
