@@ -1,0 +1,29 @@
+pipeline {
+    agent {
+        kubernetes {
+          defaultContainer 'python'
+          inheritFrom 'cicd-agent-python36-pypi-pkg'
+        }
+    }
+    stages {
+        stage('Check Env') {
+            steps {
+                sh "pwd;ls -al;"
+                sh "git branch -a;git tag;du -sh .[^.]* *"
+            }
+        }
+        stage('Build PyPi Pkg') {
+            steps {
+                sh "make build"
+            }
+        }
+        stage('Deploy PyPi Pkg') {
+            steps {
+                // service-account-pypi is ID in credential
+                withAWS(credentials:'service-account-pypi') {
+                    sh "make release-aws"
+                }
+            }
+        }
+    }
+}
