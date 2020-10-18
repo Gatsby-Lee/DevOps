@@ -45,7 +45,7 @@ How to optimize
 
   * uncheck "fetch tags"
   * check "Honor refspec on initial clone"
-  * check "Shallow clone"
+  * check "Shallow clone" - If "Shallow clone depth" is empty, the only latest one will be fetched.
 
 
 References
