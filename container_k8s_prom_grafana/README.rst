@@ -135,6 +135,20 @@ CPU current Usage
 ``max(irate(container_cpu_usage_seconds_total{pod=~"$pod_name-.*",container="$pod_name"}[5m]))by(pod) * 1000``
 
 
+CPU throttled second
+--------------------
+
+* ``container_cpu_cfs_throttled_seconds_total ( Counter, cumulative )``
+
+  * container="${pod_name}" is necessary.
+  * `irate`: diff between the recent two data points ( [5m] )
+  * max .. by(pod): to aggregate - it doesn't matter to use ``max`` or ``sum``
+  * time range the recent 5m
+  * x1000 to covert to mCPU
+
+``sum(irate(container_cpu_cfs_throttled_seconds_total{pod=~"$pod_name-.*",container="$pod_name"}[5m]))by(pod) * 1000``
+
+
 CPU Usage Percentage based on Request
 -------------------------------------
 
