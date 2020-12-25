@@ -64,6 +64,7 @@ CPU
 * container_cpu_user_seconds_total: Cumulative “user” CPU time consumed in seconds
 * container_cpu_system_seconds_total: Cumulative “system” CPU time consumed in seconds
 * container_cpu_usage_seconds_total: Cumulative CPU time consumed in seconds (sum of the above)
+* container_cpu_cfs_throttled_seconds_total
 
 Memory
 -------
