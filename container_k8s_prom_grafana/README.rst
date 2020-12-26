@@ -193,7 +193,7 @@ References about CPU
 Container metric Calculation - Memory
 =====================================
 
-* `container_memory_usage_bytes vs. container_memory_usage_bytes <https://blog.freshtracks.io/a-deep-dive-into-kubernetes-metrics-part-3-container-resource-metrics-361c5ee46e66>`_
+* `container_memory_usage_bytes vs. container_memory_working_set_bytes <https://blog.freshtracks.io/a-deep-dive-into-kubernetes-metrics-part-3-container-resource-metrics-361c5ee46e66>`_
 * ``container_memory_usage_bytes``: Current memory usage in bytes, including all memory regardless of when it was accessed.
 * ``container_memory_working_set_bytes``: Current working set in bytes. ( OOM killer is watching this )
 
