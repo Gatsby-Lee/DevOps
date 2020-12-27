@@ -117,6 +117,11 @@ Pod restart counts
 
 ``max(kube_pod_container_status_restarts_total{pod=~"$pod_name-.*",container="$pod_name"})by(pod)``
 
+Number of Running Pods
+----------------------
+
+``count(kube_pod_info{pod=~"$pod_name-.*"})``
+
 
 Container metric Calculation - CPU
 ==================================
