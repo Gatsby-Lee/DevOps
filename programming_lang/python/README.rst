@@ -30,6 +30,17 @@ Python 2.7 Console printing issue
         sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
 
 
+OSX: Install Python - recommended
+---------------------------------
+
+To prevent seeing "SSL: CERTIFICATE_VERIFY_FAILED"
+
+* Download Binary - https://www.python.org/downloads/mac-osx/
+* Install
+* cd "/Applications/Python\ 3.7" if 3.7
+* sudo "./Install Certificates.command"
+
+
 Strip
 -----
 
