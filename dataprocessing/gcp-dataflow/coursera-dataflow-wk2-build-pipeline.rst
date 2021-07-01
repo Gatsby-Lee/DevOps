@@ -42,9 +42,9 @@ DoFn Lifecycle
 
 * ParDo: kind of simple "map" or "filter"
 
-.. image:: ./images/gcp_k8s_workload/gcp-dataflow-wk2-2.png
-.. image:: ./images/gcp_k8s_workload/gcp-dataflow-wk2-3.png
-.. image:: ./images/gcp_k8s_workload/gcp-dataflow-wk2-4.png
+.. image:: ./images/gcp-dataflow-wk2-2.png
+.. image:: ./images/gcp-dataflow-wk2-3.png
+.. image:: ./images/gcp-dataflow-wk2-4.png
 
 
 * references
