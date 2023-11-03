@@ -30,3 +30,10 @@ Commiter Info
 Remove Remote branch
 ---------------------
 * git push <remote_name> --delete <branch_name>
+
+
+# Grep 
+
+Exclude from grep
+-----------------
+* git grep foobar -- ':!*.java'
