@@ -3,7 +3,7 @@
     "editor.cursorBlinking": "solid",
     "editor.fontSize": 15,
     // Formatting
-    "editor.autoIndent": true,
+    "editor.autoIndent": "none",
     "editor.formatOnSave": true,
     "editor.multiCursorModifier": "alt",
     "editor.renderWhitespace": "all",
@@ -89,4 +89,3 @@
         "tmp": true
     }
 }
-
