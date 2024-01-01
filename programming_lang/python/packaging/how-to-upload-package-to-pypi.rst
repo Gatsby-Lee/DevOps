@@ -59,8 +59,6 @@ Ref: https://packaging.python.org/en/latest/specifications/pypirc/
 * change permission of file - ``chmod 600 ~/.pypirc``
 
 
-
-
 Upload to TestPyPI (testing)
 ==============================
 ``twine upload --repository testpypi dist/*``
@@ -73,6 +71,21 @@ Test installing package in TestPyPI::
 
 If dependent packages need to be pulled from PyPI, use `--extra-index-url`::
   ``pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple your-package``
+
+
+In case, the upload doesn't work due to some format issue.
+
+.. code-block:: bash
+
+  # first, check `long_description_content_type="text/markdown",` in setup.py if Markdown is used for README.md
+
+  pip install -U twine wheel setuptools docutils
+
+  https://github.com/pypi/warehouse/issues/5890#issuecomment-494868157
+  rm -rf dist
+  python setup.py sdist
+  python setup.py bdist_wheel
+  twine check dist/*
 
 
 Upload to PyPI
