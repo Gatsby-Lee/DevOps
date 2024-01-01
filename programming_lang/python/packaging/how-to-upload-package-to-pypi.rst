@@ -10,8 +10,16 @@ Requirements
 * your packaged project
 
 Setup credential ``~/.pypirc``
-============================
+======================================================
+
+NOTE: using username/password won't work anymore as of Two-way auth is enabled.
+
+Either Trusted Publisher or API Token has to be used.
+
+Ref: https://packaging.python.org/en/latest/specifications/pypirc/
+
 * Create ``~/.pypirc`` with your credentials
+
 .. code-block:: ini
 
   [distutils]
@@ -28,7 +36,30 @@ Setup credential ``~/.pypirc``
   username=your_username
   password=your_password
 
+
+* OR Create ``~/.pypirc`` with your credentials
+
+.. code-block:: ini
+
+  [distutils]
+  index-servers =
+    pypi
+    testpypi
+  
+  [pypi]
+  username = __token__
+  password = <TestPyPI token>
+  
+  [testpypi]
+  repository: https://test.pypi.org/legacy/
+  username = __token__
+  password = <TestPyPI token>
+
+
 * change permission of file - ``chmod 600 ~/.pypirc``
+
+
+
 
 Upload to TestPyPI (testing)
 ==============================
