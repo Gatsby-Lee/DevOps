@@ -23,7 +23,7 @@ def parse_content(content: str) -> dict[str, str]:
     return parsed_content
 
 
-def format_data(content_config_1: str, content_config_2: str):
+def format_data(config_filename_1: str, config_filename_2: str, content_config_1: str, content_config_2: str):
 
     all_keys = sorted(list(set(content_config_1.keys()) | set(content_config_2.keys())))
     data = []
@@ -36,7 +36,7 @@ def format_data(content_config_1: str, content_config_2: str):
     data.sort(key=lambda x: (x[1], x[0]))
 
     x = PrettyTable()
-    x.field_names = ["PropertyName", "IsEqual", "Value1", "Value2"]
+    x.field_names = ["PropertyName", "IsEqual", config_filename_1, config_filename_2]
     x.align["PropertyName"] = "l"
     for r in data:
         x.add_row(r)
@@ -47,9 +47,9 @@ def format_data(content_config_1: str, content_config_2: str):
 def main():
 
     # 1. read contents
-    config_1 = sys.argv[1]
-    config_2 = sys.argv[2]
-    with open(config_1) as f1, open(config_2) as f2:
+    config_filename_1 = sys.argv[1]
+    config_filename_2 = sys.argv[2]
+    with open(config_filename_1) as f1, open(config_filename_2) as f2:
         raw_content_config_1 = f1.read()
         raw_content_config_2 = f2.read()
         print("====== Config 1 =====")
@@ -60,7 +60,7 @@ def main():
         content_config_1 = parse_content(raw_content_config_1)
         content_config_2 = parse_content(raw_content_config_2)
 
-    print(format_data(content_config_1, content_config_2))
+    print(format_data(config_filename_1, config_filename_2, content_config_1, content_config_2))
 
 
 if __name__ == "__main__":
