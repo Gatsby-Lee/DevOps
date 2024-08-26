@@ -4,6 +4,7 @@ def main():
     parser = argparse.ArgumentParser(description="Example script that requires one of two arguments.")
 
     # Create a mutually exclusive group
+    # The required=True ensures that the user must provide at least one of the options.
     group = parser.add_mutually_exclusive_group(required=True)
 
     # Add arguments to the group
